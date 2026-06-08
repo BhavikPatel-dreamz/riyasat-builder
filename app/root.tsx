@@ -1,5 +1,7 @@
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 
+import cmsStyles from "./styles/cms.css?url";
+
 export default function App() {
   return (
     <html lang="en">
@@ -13,6 +15,7 @@ export default function App() {
         />
         <Meta />
         <Links />
+        <link rel="stylesheet" href={cmsStyles} />
       </head>
       <body>
         <Outlet />

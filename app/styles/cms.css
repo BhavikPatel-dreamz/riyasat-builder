@@ -1,0 +1,8 @@
+.cms-editor-shell {
+  min-height: calc(100vh - 4rem);
+}
+
+.cms-public-page {
+  margin: 0 auto;
+  max-width: 960px;
+}

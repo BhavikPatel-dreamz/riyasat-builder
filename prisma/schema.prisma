@@ -32,3 +32,31 @@ model Session {
   refreshToken        String?
   refreshTokenExpires DateTime?
 }
+
+model Page {
+  id        String   @id @default(cuid())
+  shop      String
+  title     String
+  slug      String
+  html      String   @db.Text
+  json      String   @db.Text
+  status    String   @default("draft")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([shop, slug])
+  @@index([shop])
+}
+
+model Media {
+  id            String   @id @default(cuid())
+  shop          String
+  shopifyFileId String?
+  url           String
+  alt           String?
+  title         String?
+  mimeType      String?
+  createdAt     DateTime @default(now())
+
+  @@index([shop])
+}
