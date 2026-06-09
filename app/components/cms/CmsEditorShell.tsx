@@ -123,12 +123,26 @@ export function CmsEditorShell({
   const [showSeo, setShowSeo] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // The id of the page this editor is bound to. For an existing page it's the
+  // prop; for a brand-new page it starts undefined and is filled in once the
+  // first save creates the record. Subsequent saves then update that same page
+  // (PUT) instead of creating a fresh one (POST) on every Save click.
+  const [currentPageId, setCurrentPageId] = useState<string | undefined>(
+    pageId,
+  );
+
   // onSave is captured by the editor at mount; read live meta via a ref so the
-  // latest field values are included no matter when the user clicks Save.
+  // latest field values are included no matter when the user clicks Save. The
+  // page id is read the same way so the first-save id is seen by later saves.
   const metaRef = useRef(meta);
   useEffect(() => {
     metaRef.current = meta;
   }, [meta]);
+
+  const currentPageIdRef = useRef(currentPageId);
+  useEffect(() => {
+    currentPageIdRef.current = currentPageId;
+  }, [currentPageId]);
 
   const setField = useCallback(
     <K extends keyof MetaState>(key: K, value: MetaState[K]) => {
@@ -172,14 +186,18 @@ export function CmsEditorShell({
           stickyFooterId: current.stickyFooterId || null,
         };
 
-        const response = isNew
-          ? await fetch("/api/cms/pages", {
-              method: "POST",
+        // Create only when we don't yet have a saved page; otherwise update it.
+        // This makes repeated Save clicks on a new page edit the same record
+        // instead of spawning a duplicate page on every click.
+        const existingId = currentPageIdRef.current;
+        const response = existingId
+          ? await fetch(`/api/cms/pages/${existingId}`, {
+              method: "PUT",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(payload),
             })
-          : await fetch(`/api/cms/pages/${pageId}`, {
-              method: "PUT",
+          : await fetch("/api/cms/pages", {
+              method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(payload),
             });
@@ -190,6 +208,11 @@ export function CmsEditorShell({
         }
 
         const saved = await response.json();
+        // Bind the editor to the freshly created page so the next save updates
+        // it rather than creating another one.
+        if (!existingId && saved.id) {
+          setCurrentPageId(saved.id);
+        }
         // Reflect the server-resolved slug (it may de-dupe or derive from title).
         if (saved.slug) {
           setField("slug", saved.slug);
@@ -200,7 +223,7 @@ export function CmsEditorShell({
         setSaving(false);
       }
     },
-    [contentType, isNew, onSaved, pageId, setField],
+    [contentType, onSaved, setField],
   );
 
   const onLoad = useCallback(
