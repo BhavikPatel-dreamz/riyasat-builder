@@ -24,9 +24,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   return Response.json(
     {
-      shop,
-      count: pages.length,
-      pages: pages.map(({ html, ...rest }) => rest),
+      success: true,
+      pages,
     },
     {
       headers: {

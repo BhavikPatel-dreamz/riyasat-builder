@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "efd0d9cdb1452101dbb2be5b0c794352"
-name = "riyasat-builder"
+client_id = "3bad84e5f087cc0efe89069021acefcc"
+name = "Riyasat Builder"
 application_url = "https://riyasat-builder.vercel.app"
 embedded = true
 

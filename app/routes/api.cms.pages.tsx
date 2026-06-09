@@ -31,6 +31,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       seoDescription: body.seoDescription,
       ogImage: body.ogImage,
       keywords: body.keywords,
+      type: body.type,
+      hideHeader: body.hideHeader,
+      showPageTitle: body.showPageTitle,
+      backgroundColor: body.backgroundColor,
+      renderingType: body.renderingType,
+      headerId: body.headerId,
+      footerId: body.footerId,
+      stickyHeaderId: body.stickyHeaderId,
+      stickyFooterId: body.stickyFooterId,
+      stickyHeader: body.stickyHeader,
+      stickyFooter: body.stickyFooter,
     });
 
     return Response.json(page, { status: 201 });

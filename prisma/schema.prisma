@@ -41,6 +41,26 @@ model Page {
   html           String   @db.Text
   json           String   @db.Text
   status         String   @default("draft")
+  // "page" | "header" | "footer" — headers and footers reuse the same builder
+  // and are attached to pages via headerId / footerId.
+  type           String   @default("page")
+  // Layout settings consumed by the mobile app via the App Proxy.
+  hideHeader      Boolean @default(false)
+  showPageTitle   Boolean @default(true)
+  backgroundColor String  @default("#ffffff")
+  // "normal" | "scrollView" | "flatList"
+  renderingType   String  @default("normal")
+  // Optional references to header/footer-type pages (same shop).
+  headerId       String?
+  footerId       String?
+  // Sticky (pinned) slots also reference reusable header/footer-type pages,
+  // so a component can be built once and reused across pages. The legacy
+  // inline `stickyHeader`/`stickyFooter` JSON columns are kept as a fallback
+  // for any page saved before the switch to references.
+  stickyHeaderId String?
+  stickyFooterId String?
+  stickyHeader   String   @default("[]") @db.Text
+  stickyFooter   String   @default("[]") @db.Text
   description    String?  @db.Text
   seoTitle       String?
   seoDescription String?  @db.Text
@@ -51,6 +71,7 @@ model Page {
 
   @@unique([shop, slug])
   @@index([shop])
+  @@index([shop, type])
 }
 
 model Media {

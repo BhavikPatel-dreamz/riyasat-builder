@@ -8,10 +8,28 @@ type MetaState = {
   seoDescription: string;
   ogImage: string;
   keywords: string;
+  hideHeader: boolean;
+  showPageTitle: boolean;
+  backgroundColor: string;
+  renderingType: "normal" | "scrollView" | "flatList";
+  headerId: string;
+  footerId: string;
+  stickyHeaderId: string;
+  stickyFooterId: string;
 };
+
+type SelectableComponent = {
+  id: string;
+  title: string;
+  slug: string;
+  status: string;
+};
+
+type ContentType = "page" | "header" | "footer";
 
 type CmsEditorShellProps = {
   pageId?: string;
+  contentType?: ContentType;
   initialTitle?: string;
   initialContent?: string;
   isNew?: boolean;
@@ -23,6 +41,16 @@ type CmsEditorShellProps = {
   initialSeoDescription?: string;
   initialOgImage?: string;
   initialKeywords?: string;
+  initialHideHeader?: boolean;
+  initialShowPageTitle?: boolean;
+  initialBackgroundColor?: string;
+  initialRenderingType?: "normal" | "scrollView" | "flatList";
+  initialHeaderId?: string;
+  initialFooterId?: string;
+  initialStickyHeaderId?: string;
+  initialStickyFooterId?: string;
+  headers?: SelectableComponent[];
+  footers?: SelectableComponent[];
 };
 
 function EditorFallback() {
@@ -47,6 +75,7 @@ async function fetchPage(pageId: string) {
 
 export function CmsEditorShell({
   pageId,
+  contentType = "page",
   initialTitle = "Untitled page",
   initialContent,
   isNew = false,
@@ -58,6 +87,16 @@ export function CmsEditorShell({
   initialSeoDescription = "",
   initialOgImage = "",
   initialKeywords = "",
+  initialHideHeader = false,
+  initialShowPageTitle = true,
+  initialBackgroundColor = "#ffffff",
+  initialRenderingType = "normal",
+  initialHeaderId = "",
+  initialFooterId = "",
+  initialStickyHeaderId = "",
+  initialStickyFooterId = "",
+  headers = [],
+  footers = [],
 }: CmsEditorShellProps) {
   useEffect(() => {
     import("gutenberg-block-kit/styles");
@@ -70,9 +109,19 @@ export function CmsEditorShell({
     seoDescription: initialSeoDescription,
     ogImage: initialOgImage,
     keywords: initialKeywords,
+    hideHeader: initialHideHeader,
+    showPageTitle: initialShowPageTitle,
+    backgroundColor: initialBackgroundColor,
+    renderingType: initialRenderingType,
+    headerId: initialHeaderId,
+    footerId: initialFooterId,
+    stickyHeaderId: initialStickyHeaderId,
+    stickyFooterId: initialStickyFooterId,
   });
   const [uploadingOg, setUploadingOg] = useState(false);
   const [metaError, setMetaError] = useState<string | null>(null);
+  const [showSeo, setShowSeo] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   // onSave is captured by the editor at mount; read live meta via a ref so the
   // latest field values are included no matter when the user clicks Save.
@@ -99,45 +148,59 @@ export function CmsEditorShell({
       html: string;
       json: string;
     }) => {
-      const current = metaRef.current;
-      const payload = {
-        title,
-        html,
-        json,
-        slug: current.slug.trim() || undefined,
-        description: current.description,
-        seoTitle: current.seoTitle,
-        seoDescription: current.seoDescription,
-        ogImage: current.ogImage,
-        keywords: current.keywords,
-      };
+      setSaving(true);
+      try {
+        const current = metaRef.current;
+        const payload = {
+          title,
+          html,
+          json,
+          type: contentType,
+          slug: current.slug.trim() || undefined,
+          description: current.description,
+          seoTitle: current.seoTitle,
+          seoDescription: current.seoDescription,
+          ogImage: current.ogImage,
+          keywords: current.keywords,
+          hideHeader: current.hideHeader,
+          showPageTitle: current.showPageTitle,
+          backgroundColor: current.backgroundColor || "#ffffff",
+          renderingType: current.renderingType,
+          headerId: current.headerId || null,
+          footerId: current.footerId || null,
+          stickyHeaderId: current.stickyHeaderId || null,
+          stickyFooterId: current.stickyFooterId || null,
+        };
 
-      const response = isNew
-        ? await fetch("/api/cms/pages", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          })
-        : await fetch(`/api/cms/pages/${pageId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          });
+        const response = isNew
+          ? await fetch("/api/cms/pages", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            })
+          : await fetch(`/api/cms/pages/${pageId}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
 
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.error || "Failed to save page.");
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.error || "Failed to save page.");
+        }
+
+        const saved = await response.json();
+        // Reflect the server-resolved slug (it may de-dupe or derive from title).
+        if (saved.slug) {
+          setField("slug", saved.slug);
+        }
+        onSaved?.(saved.id);
+        return saved;
+      } finally {
+        setSaving(false);
       }
-
-      const saved = await response.json();
-      // Reflect the server-resolved slug (it may de-dupe or derive from title).
-      if (saved.slug) {
-        setField("slug", saved.slug);
-      }
-      onSaved?.(saved.id);
-      return saved;
     },
-    [isNew, onSaved, pageId, setField],
+    [contentType, isNew, onSaved, pageId, setField],
   );
 
   const onLoad = useCallback(
@@ -221,9 +284,66 @@ export function CmsEditorShell({
 
   const ogFileInputRef = useRef<HTMLInputElement>(null);
 
+  // Compact one-line summary of the SEO/social fields, shown when the group is
+  // collapsed so the user can see what's set without expanding it.
+  const seoSummary = (() => {
+    const parts: string[] = [];
+    if (meta.seoTitle.trim()) parts.push("title");
+    if (meta.seoDescription.trim()) parts.push("description");
+    if (meta.keywords.trim()) parts.push("keywords");
+    if (meta.ogImage.trim()) parts.push("image");
+    return parts.length ? `Set: ${parts.join(", ")}` : "Using page defaults";
+  })();
+
+  const twoCol = "@container (inline-size >= 640px) 1fr 1fr, 1fr";
+
+  // Header/footer components only hold a title, slug and blocks — the page
+  // layout, sticky and SEO settings below are page-only.
+  const isPage = contentType === "page";
+  const typeLabel =
+    contentType === "header"
+      ? "Header"
+      : contentType === "footer"
+        ? "Footer"
+        : "Page";
+
   return (
     <div className="cms-editor-shell">
-      <s-section heading="Page settings">
+      {/* Blocking overlay while a save is in flight, so the merchant knows the
+          builder is persisting and doesn't navigate away mid-save. */}
+      {saving ? (
+        <div
+          role="status"
+          aria-live="polite"
+          aria-label="Saving"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(255, 255, 255, 0.6)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "16px 20px",
+              borderRadius: 12,
+              background: "#fff",
+              boxShadow: "0 4px 24px rgba(0, 0, 0, 0.18)",
+            }}
+          >
+            <s-spinner size="base" accessibilityLabel="Saving"></s-spinner>
+            <s-text>Saving {typeLabel.toLowerCase()}…</s-text>
+          </div>
+        </div>
+      ) : null}
+
+      <s-section heading={`${typeLabel} settings`}>
         {metaError ? (
           <s-banner tone="critical" heading="Image upload failed">
             <s-paragraph>{metaError}</s-paragraph>
@@ -231,107 +351,270 @@ export function CmsEditorShell({
         ) : null}
 
         <s-stack direction="block" gap="base">
-          <s-text-field
-            label="URL slug"
-            name="slug"
-            prefix="/pages/"
-            placeholder="auto-generated from the title"
-            details="Used in the page URL and the mobile API. Leave blank to generate from the title."
-            value={meta.slug}
-            onChange={(e) =>
-              setField("slug", e.currentTarget.value)
-            }
-          ></s-text-field>
-
-          <s-text-area
-            label="Page description / excerpt"
-            name="description"
-            rows={2}
-            details="Short summary shown in list/card views on mobile."
-            value={meta.description}
-            onChange={(e) =>
-              setField("description", e.currentTarget.value)
-            }
-          ></s-text-area>
-
-          <s-text-field
-            label="SEO title"
-            name="seoTitle"
-            maxLength={70}
-            placeholder="Defaults to the page title"
-            details={`${meta.seoTitle.length}/70 characters`}
-            value={meta.seoTitle}
-            onChange={(e) =>
-              setField("seoTitle", e.currentTarget.value)
-            }
-          ></s-text-field>
-
-          <s-text-area
-            label="Meta description"
-            name="seoDescription"
-            rows={3}
-            maxLength={160}
-            details={`${meta.seoDescription.length}/160 characters`}
-            value={meta.seoDescription}
-            onChange={(e) =>
-              setField("seoDescription", e.currentTarget.value)
-            }
-          ></s-text-area>
-
-          <s-text-field
-            label="Keywords"
-            name="keywords"
-            placeholder="comma, separated, keywords"
-            details="Comma-separated. Exposed as an array in the mobile API."
-            value={meta.keywords}
-            onChange={(e) =>
-              setField("keywords", e.currentTarget.value)
-            }
-          ></s-text-field>
-
-          <s-stack direction="block" gap="small">
-            <s-text>Social / OG image</s-text>
-            <s-stack direction="inline" gap="base" alignItems="center">
-              {meta.ogImage ? (
-                <s-thumbnail size="large" src={meta.ogImage} alt="OG image" />
-              ) : null}
-              <s-stack direction="block" gap="small">
-                <s-button
-                  variant="secondary"
-                  onClick={() => ogFileInputRef.current?.click()}
-                  {...(uploadingOg ? { loading: true } : {})}
-                >
-                  {meta.ogImage ? "Replace image" : "Upload image"}
-                </s-button>
-                {meta.ogImage ? (
-                  <s-button
-                    variant="tertiary"
-                    tone="critical"
-                    onClick={() => setField("ogImage", "")}
-                  >
-                    Remove
-                  </s-button>
-                ) : null}
-              </s-stack>
-            </s-stack>
+          {/* Essentials — slug and excerpt side by side on wide viewports. */}
+          <s-grid gridTemplateColumns={twoCol} gap="base">
             <s-text-field
-              label="Image URL"
-              labelAccessibilityVisibility="exclusive"
-              name="ogImage"
-              placeholder="https://…"
-              value={meta.ogImage}
-              onChange={(e) =>
-                setField("ogImage", e.currentTarget.value)
-              }
+              label="URL slug"
+              name="slug"
+              prefix="/pages/"
+              placeholder="auto-generated from the title"
+              details="Leave blank to generate from the title."
+              value={meta.slug}
+              onChange={(e) => setField("slug", e.currentTarget.value)}
             ></s-text-field>
-            <input
-              ref={ogFileInputRef}
-              type="file"
-              accept="image/*"
-              style={{ display: "none" }}
-              onChange={onOgFileChange}
-            />
-          </s-stack>
+
+            <s-text-area
+              label="Description / excerpt"
+              name="description"
+              rows={2}
+              details="Shown in list/card views on mobile."
+              value={meta.description}
+              onChange={(e) => setField("description", e.currentTarget.value)}
+            ></s-text-area>
+          </s-grid>
+
+          {isPage ? (
+            <>
+              <s-divider />
+
+              <s-grid gridTemplateColumns={twoCol} gap="base">
+                <s-select
+                  label="Header"
+                  name="headerId"
+                  value={meta.headerId}
+                  onChange={(e) => setField("headerId", e.currentTarget.value)}
+                >
+                  <s-option value="">None</s-option>
+                  {headers.map((header) => (
+                    <s-option key={header.id} value={header.id}>
+                      {header.title}
+                    </s-option>
+                  ))}
+                </s-select>
+
+                <s-select
+                  label="Footer"
+                  name="footerId"
+                  value={meta.footerId}
+                  onChange={(e) => setField("footerId", e.currentTarget.value)}
+                >
+                  <s-option value="">None</s-option>
+                  {footers.map((footer) => (
+                    <s-option key={footer.id} value={footer.id}>
+                      {footer.title}
+                    </s-option>
+                  ))}
+                </s-select>
+              </s-grid>
+
+              {/* Sticky (pinned) slots reuse the same header/footer components,
+              selected by reference so one component can be shared across pages. */}
+              <s-grid gridTemplateColumns={twoCol} gap="base">
+                <s-select
+                  label="Sticky header"
+                  name="stickyHeaderId"
+                  details="Pinned to the top on mobile."
+                  value={meta.stickyHeaderId}
+                  onChange={(e) =>
+                    setField("stickyHeaderId", e.currentTarget.value)
+                  }
+                >
+                  <s-option value="">None</s-option>
+                  {headers.map((header) => (
+                    <s-option key={header.id} value={header.id}>
+                      {header.title}
+                    </s-option>
+                  ))}
+                </s-select>
+
+                <s-select
+                  label="Sticky footer"
+                  name="stickyFooterId"
+                  details="Pinned to the bottom on mobile."
+                  value={meta.stickyFooterId}
+                  onChange={(e) =>
+                    setField("stickyFooterId", e.currentTarget.value)
+                  }
+                >
+                  <s-option value="">None</s-option>
+                  {footers.map((footer) => (
+                    <s-option key={footer.id} value={footer.id}>
+                      {footer.title}
+                    </s-option>
+                  ))}
+                </s-select>
+              </s-grid>
+
+              <s-grid gridTemplateColumns={twoCol} gap="base">
+                <s-select
+                  label="Rendering type"
+                  name="renderingType"
+                  value={meta.renderingType}
+                  onChange={(e) =>
+                    setField(
+                      "renderingType",
+                      e.currentTarget.value as MetaState["renderingType"],
+                    )
+                  }
+                >
+                  <s-option value="normal">Normal</s-option>
+                  <s-option value="scrollView">Scroll view</s-option>
+                  <s-option value="flatList">Flat list</s-option>
+                </s-select>
+
+                <s-text-field
+                  label="Background color"
+                  name="backgroundColor"
+                  placeholder="#ffffff"
+                  value={meta.backgroundColor}
+                  onChange={(e) =>
+                    setField("backgroundColor", e.currentTarget.value)
+                  }
+                ></s-text-field>
+              </s-grid>
+
+              <s-stack direction="inline" gap="base">
+                <s-checkbox
+                  label="Hide page header"
+                  name="hideHeader"
+                  checked={meta.hideHeader}
+                  onChange={(e) =>
+                    setField("hideHeader", e.currentTarget.checked)
+                  }
+                ></s-checkbox>
+                <s-checkbox
+                  label="Show page title"
+                  name="showPageTitle"
+                  checked={meta.showPageTitle}
+                  onChange={(e) =>
+                    setField("showPageTitle", e.currentTarget.checked)
+                  }
+                ></s-checkbox>
+              </s-stack>
+
+              <s-divider />
+
+              {/* Collapsible SEO & social group — collapsed by default to keep the
+              meta box compact above the editor. */}
+              <s-stack
+                direction="inline"
+                gap="base"
+                alignItems="center"
+                justifyContent="space-between"
+              >
+                <s-stack direction="block" gap="none">
+                  <s-heading>Search engine &amp; social</s-heading>
+                  <s-text color="subdued">{seoSummary}</s-text>
+                </s-stack>
+                <s-button
+                  variant="tertiary"
+                  onClick={() => setShowSeo((v) => !v)}
+                >
+                  {showSeo ? "Hide" : "Edit"}
+                </s-button>
+              </s-stack>
+
+              {showSeo ? (
+                <s-stack direction="block" gap="base">
+                  <s-grid gridTemplateColumns={twoCol} gap="base">
+                    <s-text-field
+                      label="SEO title"
+                      name="seoTitle"
+                      maxLength={70}
+                      placeholder="Defaults to the page title"
+                      details={`${meta.seoTitle.length}/70`}
+                      value={meta.seoTitle}
+                      onChange={(e) =>
+                        setField("seoTitle", e.currentTarget.value)
+                      }
+                    ></s-text-field>
+
+                    <s-text-field
+                      label="Keywords"
+                      name="keywords"
+                      placeholder="comma, separated, keywords"
+                      details="Comma-separated."
+                      value={meta.keywords}
+                      onChange={(e) =>
+                        setField("keywords", e.currentTarget.value)
+                      }
+                    ></s-text-field>
+                  </s-grid>
+
+                  <s-text-area
+                    label="Meta description"
+                    name="seoDescription"
+                    rows={2}
+                    maxLength={160}
+                    details={`${meta.seoDescription.length}/160`}
+                    value={meta.seoDescription}
+                    onChange={(e) =>
+                      setField("seoDescription", e.currentTarget.value)
+                    }
+                  ></s-text-area>
+
+                  {/* OG image — thumbnail and controls inline to stay compact. */}
+                  <s-stack direction="block" gap="small">
+                    <s-text color="subdued">Social / OG image</s-text>
+                    <s-grid
+                      gridTemplateColumns={twoCol}
+                      gap="base"
+                      alignItems="end"
+                    >
+                      <s-stack
+                        direction="inline"
+                        gap="base"
+                        alignItems="center"
+                      >
+                        {meta.ogImage ? (
+                          <s-thumbnail
+                            size="large"
+                            src={meta.ogImage}
+                            alt="OG image"
+                          />
+                        ) : null}
+                        <s-stack direction="inline" gap="small">
+                          <s-button
+                            variant="secondary"
+                            onClick={() => ogFileInputRef.current?.click()}
+                            {...(uploadingOg ? { loading: true } : {})}
+                          >
+                            {meta.ogImage ? "Replace" : "Upload"}
+                          </s-button>
+                          {meta.ogImage ? (
+                            <s-button
+                              variant="tertiary"
+                              tone="critical"
+                              onClick={() => setField("ogImage", "")}
+                            >
+                              Remove
+                            </s-button>
+                          ) : null}
+                        </s-stack>
+                      </s-stack>
+                      <s-text-field
+                        label="Image URL"
+                        labelAccessibilityVisibility="exclusive"
+                        name="ogImage"
+                        placeholder="https://…"
+                        value={meta.ogImage}
+                        onChange={(e) =>
+                          setField("ogImage", e.currentTarget.value)
+                        }
+                      ></s-text-field>
+                    </s-grid>
+                    <input
+                      ref={ogFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={onOgFileChange}
+                    />
+                  </s-stack>
+                </s-stack>
+              ) : null}
+            </>
+          ) : null}
         </s-stack>
       </s-section>
 
