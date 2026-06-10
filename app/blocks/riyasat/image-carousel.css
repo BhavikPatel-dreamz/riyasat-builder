@@ -1,0 +1,78 @@
+.riyasat-image-carousel {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.riyasat-image-carousel__track {
+  position: relative;
+  width: 100%;
+  min-height: 320px;
+}
+
+.riyasat-image-carousel__slide {
+  width: 100%;
+  min-height: 320px;
+}
+
+.riyasat-image-carousel__slide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
+  object-fit: cover;
+}
+
+.riyasat-image-carousel__pagination {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+}
+
+.riyasat-image-carousel__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.riyasat-image-carousel__dot.is-active {
+  width: 24px;
+  background: #ffffff;
+}
+
+.riyasat-image-carousel-editor {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.riyasat-image-carousel-item-editor {
+  position: relative;
+  min-height: 280px;
+  background: #1a1a2e;
+}
+
+.riyasat-image-carousel-item-editor__placeholder,
+.riyasat-image-carousel-item-editor__image {
+  width: 100%;
+  min-height: 280px;
+  object-fit: cover;
+  display: block;
+}
+
+.riyasat-image-carousel-item-editor__placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  cursor: pointer;
+  background: #2a2a4a;
+}

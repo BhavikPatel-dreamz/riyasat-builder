@@ -51,20 +51,6 @@ export default defineConfig({
     },
   },
   plugins: [
-    // Fix: html-react-parser bundled inside gutenberg-block-kit has a var hoisting bug.
-    // `var react_1 = React` inside a __commonJSMin closure is shadowed by a later
-    // `var React = { ... }` declaration, making react_1 = undefined.
-    // This plugin rewrites it to use the namespace import (React$4) which can't be shadowed.
-    {
-      name: "fix-gutenberg-react-shadow",
-      transform(code: string, id: string) {
-        if (!id.includes("gutenberg-block-kit/dist/App-")) return;
-        return code.replace(
-          /var react_1 = React;/g,
-          "var react_1 = (typeof React$4 !== 'undefined' ? React$4 : React);"
-        );
-      },
-    },
     reactRouter(),
     tsconfigPaths(),
     gutenbergBlockKitVite()

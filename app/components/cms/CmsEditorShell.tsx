@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ClientBlockEditor } from "gutenberg-block-kit/editor-client";
+// constants.ts holds plain strings only — safe to import during SSR. The block
+// modules (which pull the @wordpress/emotion runtime) are loaded client-only in
+// the effect below.
+import { RIYASAT_BLOCKS } from "../../blocks/constants";
 
 type MetaState = {
   slug: string;
@@ -100,6 +104,10 @@ export function CmsEditorShell({
 }: CmsEditorShellProps) {
   useEffect(() => {
     import("gutenberg-block-kit/styles");
+    // Client-only: registers riyasat blocks via the kit's registerBlocks() hook.
+    // Imported here (not at module top) so the @wordpress runtime never loads
+    // during SSR — registerBlocks queues until the editor's registry inits.
+    import("../../blocks");
   }, []);
 
   const [meta, setMeta] = useState<MetaState>({
@@ -432,8 +440,8 @@ export function CmsEditorShell({
 
               {/* Sticky (pinned) slots reuse the same header/footer components,
               selected by reference so one component can be shared across pages. */}
-              <s-grid gridTemplateColumns={twoCol} gap="base">
-                <s-select
+              {/* <s-grid gridTemplateColumns={twoCol} gap="base"> */}
+                {/* <s-select
                   label="Sticky header"
                   name="stickyHeaderId"
                   details="Pinned to the top on mobile."
@@ -448,9 +456,9 @@ export function CmsEditorShell({
                       {header.title}
                     </s-option>
                   ))}
-                </s-select>
+                </s-select> */}
 
-                <s-select
+                {/* <s-select
                   label="Sticky footer"
                   name="stickyFooterId"
                   details="Pinned to the bottom on mobile."
@@ -465,8 +473,8 @@ export function CmsEditorShell({
                       {footer.title}
                     </s-option>
                   ))}
-                </s-select>
-              </s-grid>
+                </s-select> */}
+              {/* </s-grid> */}
 
               <s-grid gridTemplateColumns={twoCol} gap="base">
                 <s-select
@@ -648,6 +656,11 @@ export function CmsEditorShell({
         initialContent={initialContent}
         onSave={onSave}
         onLoad={onLoad}
+        unregisterBlocks={["core/breadcrumbs","core/table","core/code","core/gallery","core/shortcode","core/search","core/tag-cloud","core/html"]}
+        // Drop the kit's myapp/* demo blocks entirely.
+        disableBundledBlocks
+        // Hide remaining defaults (WP core) — only riyasat blocks insertable.
+        editorSettings={{ allowedBlockTypes: RIYASAT_BLOCKS }}
         media={{
           perPage: 20,
           listImages,
