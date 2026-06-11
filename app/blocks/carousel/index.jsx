@@ -212,10 +212,17 @@ function registerCarouselParent() {
       const { showPagination } = attributes;
       const blockProps = useBlockProps({ className: 'riyasat-image-carousel-editor' });
       const [activeIndex, setActiveIndex] = useState(0);
-      const slideCount = useSelect(
-        (select) => select('core/block-editor').getBlockCount(clientId),
+      const { childClientIds, selectedBlockClientId } = useSelect(
+        (select) => {
+          const blockEditor = select('core/block-editor');
+          return {
+            childClientIds: blockEditor.getBlockOrder(clientId),
+            selectedBlockClientId: blockEditor.getSelectedBlockClientId(),
+          };
+        },
         [clientId],
       );
+      const slideCount = childClientIds.length;
 
       useEffect(() => {
         if (slideCount <= 0) {
@@ -224,6 +231,17 @@ function registerCarouselParent() {
         }
         if (activeIndex > slideCount - 1) setActiveIndex(slideCount - 1);
       }, [activeIndex, slideCount]);
+
+      useEffect(() => {
+        if (!selectedBlockClientId || !childClientIds.includes(selectedBlockClientId)) {
+          return;
+        }
+
+        const nextIndex = childClientIds.indexOf(selectedBlockClientId);
+        if (nextIndex >= 0) {
+          setActiveIndex(nextIndex);
+        }
+      }, [childClientIds, selectedBlockClientId]);
 
       return (
         <>
@@ -238,8 +256,22 @@ function registerCarouselParent() {
           </InspectorControls>
 
           <div {...blockProps}>
-            <div className="riyasat-image-carousel">
-              <div className="riyasat-image-carousel__track">
+            <div className="riyasat-image-carousel" style={{ position: 'relative' }}>
+              <div
+                className="riyasat-image-carousel__track"
+                data-active-index={activeIndex}
+              >
+                {/*
+                  Slides are child blocks (core/image-carousel-item) managed by
+                  InnerBlocks. New carousel blocks start with two empty slides
+                  from the template below.
+
+                  To add more slides in the editor:
+                  - Use the List View (+) next to "Hero Carousel", or
+                  - Uncomment renderAppender below to show the canvas "+" button.
+
+                  renderAppender={InnerBlocks.ButtonBlockAppender}
+                */}
                 <InnerBlocks
                   allowedBlocks={[IMAGE_CAROUSEL_ITEM_BLOCK]}
                   template={[
@@ -247,33 +279,21 @@ function registerCarouselParent() {
                     [IMAGE_CAROUSEL_ITEM_BLOCK, {}],
                   ]}
                   templateLock={false}
-                  renderAppender={InnerBlocks.ButtonBlockAppender}
+                  renderAppender={false}
                 />
               </div>
 
               {showPagination && slideCount > 1 ? (
-                <div className="riyasat-image-carousel__pagination">
+                <div
+                  className="riyasat-image-carousel__pagination riyasat-image-carousel__pagination--preview"
+                  aria-hidden="true"
+                >
                   {Array.from({ length: slideCount }).map((_, index) => (
-                    <button
+                    <span
                       key={index}
-                      type="button"
                       className={`riyasat-image-carousel__dot${
                         index === activeIndex ? ' is-active' : ''
                       }`}
-                      aria-label={`Go to slide ${index + 1}`}
-                      onClick={() => setActiveIndex(index)}
-                      style={{
-                        width: index === activeIndex ? '24px' : '10px',
-                        height: '10px',
-                        borderRadius: '999px',
-                        border: 'none',
-                        padding: 0,
-                        cursor: 'pointer',
-                        background:
-                          index === activeIndex
-                            ? '#ffffff'
-                            : 'rgba(255,255,255,0.5)',
-                      }}
                     />
                   ))}
                 </div>
