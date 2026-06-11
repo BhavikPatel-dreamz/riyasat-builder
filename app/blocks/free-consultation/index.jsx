@@ -42,6 +42,46 @@ function FreeConsultationIcon() {
 const isVideo = (media) =>
   typeof media?.type === 'string' && media.type.startsWith('video');
 
+function FreeConsultationMedia({ media, hasMedia, onSelectMedia }) {
+  if (hasMedia) {
+    if (isVideo(media)) {
+      return (
+        <video
+          className="riyasat-free-consultation__video"
+          src={media.url}
+          controls
+        />
+      );
+    }
+
+    return (
+      <img
+        className="riyasat-free-consultation__image"
+        src={media.url}
+        alt=""
+      />
+    );
+  }
+
+  return (
+    <MediaUploadCheck>
+      <MediaUpload
+        onSelect={onSelectMedia}
+        allowedTypes={['image', 'video']}
+        render={({ open }) => (
+          <button
+            type="button"
+            className="riyasat-free-consultation__media-btn"
+            onClick={open}
+          >
+            Add image or video
+          </button>
+        )}
+      />
+    </MediaUploadCheck>
+  );
+}
+
 export function registerFreeConsultation() {
   registerBlockType(FREE_CONSULTATION_BLOCK, {
     apiVersion: 3,
@@ -175,112 +215,37 @@ export function registerFreeConsultation() {
           <div {...blockProps}>
             <div
               className="riyasat-free-consultation"
-              style={{
-                background: backgroundColor,
-                display: 'flex',
-                gap: '24px',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                padding: '24px',
-                borderRadius: '8px',
-              }}
+              style={{ background: backgroundColor }}
             >
-              <div style={{ flex: '1 1 240px', minWidth: '200px' }}>
-                {hasMedia ? (
-                  isVideo(media) ? (
-                    <video
-                      src={media.url}
-                      controls
-                      style={{
-                        width: '100%',
-                        borderRadius: '8px',
-                        display: 'block',
-                      }}
-                    />
-                  ) : (
-                    <img
-                      src={media.url}
-                      alt=""
-                      style={{
-                        width: '100%',
-                        borderRadius: '8px',
-                        display: 'block',
-                        objectFit: 'cover',
-                      }}
-                    />
-                  )
-                ) : (
-                  <MediaUploadCheck>
-                    <MediaUpload
-                      onSelect={onSelectMedia}
-                      allowedTypes={['image', 'video']}
-                      render={({ open }) => (
-                        <button
-                          type="button"
-                          onClick={open}
-                          style={{
-                            width: '100%',
-                            minHeight: '200px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            color: '#fff',
-                            background: '#2a2a4a',
-                            border: 'none',
-                            borderRadius: '8px',
-                          }}
-                        >
-                          Add image or video
-                        </button>
-                      )}
-                    />
-                  </MediaUploadCheck>
-                )}
+              {(subTitle || title || description) && (
+                <div className="riyasat-free-consultation__heading">
+                  {subTitle ? (
+                    <p className="riyasat-free-consultation__subtitle">{subTitle}</p>
+                  ) : null}
+                  {title ? (
+                    <h3 className="riyasat-free-consultation__title">{title}</h3>
+                  ) : null}
+                  {description ? (
+                    <p className="riyasat-free-consultation__description">
+                      {description}
+                    </p>
+                  ) : null}
+                </div>
+              )}
+
+              <div className="riyasat-free-consultation__media">
+                <FreeConsultationMedia
+                  media={media}
+                  hasMedia={hasMedia}
+                  onSelectMedia={onSelectMedia}
+                />
               </div>
 
-              <div style={{ flex: '1 1 240px', minWidth: '200px' }}>
-                {subTitle ? (
-                  <p
-                    className="riyasat-free-consultation__subtitle"
-                    style={{ margin: '0 0 4px', color: '#888', fontSize: '13px' }}
-                  >
-                    {subTitle}
-                  </p>
-                ) : null}
-                {title ? (
-                  <h3
-                    className="riyasat-free-consultation__title"
-                    style={{ margin: '0 0 12px', fontSize: '22px', fontWeight: 700 }}
-                  >
-                    {title}
-                  </h3>
-                ) : null}
-                {description ? (
-                  <p
-                    className="riyasat-free-consultation__description"
-                    style={{ margin: '0 0 16px', lineHeight: 1.6, color: '#444' }}
-                  >
-                    {description}
-                  </p>
-                ) : null}
-                {buttonText ? (
-                  <span
-                    className="riyasat-free-consultation__button"
-                    style={{
-                      display: 'inline-block',
-                      padding: '12px 28px',
-                      background: '#1a1a2e',
-                      color: '#fff',
-                      borderRadius: '6px',
-                      fontWeight: 600,
-                      fontSize: '14px',
-                    }}
-                  >
-                    {buttonText}
-                  </span>
-                ) : null}
-              </div>
+              {buttonText ? (
+                <div className="riyasat-free-consultation__button-wrap">
+                  <span className="riyasat-free-consultation__button">{buttonText}</span>
+                </div>
+              ) : null}
             </div>
           </div>
         </>
@@ -306,15 +271,19 @@ export function registerFreeConsultation() {
       });
       return (
         <div {...blockProps}>
-          {subTitle ? (
-            <p className="riyasat-free-consultation__subtitle">{subTitle}</p>
-          ) : null}
-          {title ? (
-            <h3 className="riyasat-free-consultation__title">{title}</h3>
-          ) : null}
-          {description ? (
-            <p className="riyasat-free-consultation__description">{description}</p>
-          ) : null}
+          {(subTitle || title || description) && (
+            <div className="riyasat-free-consultation__heading">
+              {subTitle ? (
+                <p className="riyasat-free-consultation__subtitle">{subTitle}</p>
+              ) : null}
+              {title ? (
+                <h3 className="riyasat-free-consultation__title">{title}</h3>
+              ) : null}
+              {description ? (
+                <p className="riyasat-free-consultation__description">{description}</p>
+              ) : null}
+            </div>
+          )}
           {buttonText ? (
             <span className="riyasat-free-consultation__button">{buttonText}</span>
           ) : null}
