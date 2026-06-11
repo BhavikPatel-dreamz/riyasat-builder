@@ -106,6 +106,33 @@ const FILE_CREATE_MUTATION = `#graphql
     }
   }`;
 
+// fileCreate returns as soon as the record exists — for an image that's before
+// Shopify finishes processing it, so image.url is still null and fileStatus is
+// UPLOADED, not READY. Re-fetch the node by id until the CDN url is populated.
+const FILE_STATUS_QUERY = `#graphql
+  query CmsFileStatus($id: ID!) {
+    node(id: $id) {
+      id
+      ... on MediaImage {
+        alt
+        fileStatus
+        mimeType
+        image {
+          url
+          altText
+          width
+          height
+        }
+      }
+      ... on GenericFile {
+        alt
+        fileStatus
+        url
+        mimeType
+      }
+    }
+  }`;
+
 function toMediaItem(node: {
   id: string;
   alt?: string | null;
@@ -198,6 +225,36 @@ export async function listImages(
   };
 }
 
+async function pollFileUntilReady(
+  admin: ShopifyAdminClient,
+  id: string,
+  { attempts = 10, delayMs = 600 }: { attempts?: number; delayMs?: number } = {},
+): Promise<MediaItem | null> {
+  for (let i = 0; i < attempts; i += 1) {
+    const response = await admin.graphql(FILE_STATUS_QUERY, {
+      variables: { id },
+    });
+    const json = await response.json();
+    const node = json.data?.node;
+
+    if (node) {
+      // FAILED — stop early; the CDN url will never appear.
+      if (node.fileStatus === "FAILED") {
+        return null;
+      }
+
+      const item = toMediaItem(node);
+      if (item) {
+        return item;
+      }
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+
+  return null;
+}
+
 async function uploadToStagedTarget(
   target: {
     url: string;
@@ -274,7 +331,11 @@ export async function uploadImage(
     throw new Error(createErrors[0]?.message || "Failed to create Shopify file.");
   }
 
-  const item = toMediaItem(createdFile);
+  // Image processing is async — the url is usually absent on this first
+  // response. Fall back to polling the node by id until the CDN url lands.
+  const item =
+    toMediaItem(createdFile) ??
+    (await pollFileUntilReady(admin, createdFile.id));
 
   if (!item) {
     throw new Error("Shopify file was created without a public URL.");

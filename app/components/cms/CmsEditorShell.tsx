@@ -5,6 +5,7 @@ import { ClientBlockEditor } from "gutenberg-block-kit/editor-client";
 // the effect below.
 import { RIYASAT_BLOCKS } from "../../blocks/constants";
 import { cmsEditorActions } from "./actionsConfig";
+import { FaCog, FaSearch } from "react-icons/fa";
 
 type MetaState = {
   slug: string;
@@ -139,8 +140,15 @@ export function CmsEditorShell({
   });
   const [uploadingOg, setUploadingOg] = useState(false);
   const [metaError, setMetaError] = useState<string | null>(null);
-  const [showSeo, setShowSeo] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // The custom header buttons live inside the kit's editor chrome, so there's
+  // no declarative commandFor activator to wire up — open the modals via their
+  // showOverlay() method instead.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pageSettingsModalRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const seoModalRef = useRef<any>(null);
 
   // The id of the page this editor is bound to. For an existing page it's the
   // prop; for a brand-new page it starts undefined and is filled in once the
@@ -349,6 +357,30 @@ export function CmsEditorShell({
         ? "Footer"
         : "Page";
 
+  // Header buttons injected into the kit's editor chrome. The gear opens the
+  // page/layout settings modal; the magnifier opens SEO & social (pages only —
+  // headers/footers carry neither layout nor SEO fields).
+  const customButtons = [
+    {
+      id: "page-settings",
+      icon: <FaCog />,
+      title: `${typeLabel} settings`,
+      position: "start" as const,
+      onClick: () => pageSettingsModalRef.current?.showOverlay?.(),
+    },
+    ...(isPage
+      ? [
+          {
+            id: "seo-settings",
+            icon: <FaSearch />,
+            title: "Search engine & social",
+            position: "start" as const,
+            onClick: () => seoModalRef.current?.showOverlay?.(),
+          },
+        ]
+      : []),
+  ];
+
   return (
     <div className="cms-editor-shell">
       {/* Blocking overlay while a save is in flight, so the merchant knows the
@@ -385,7 +417,13 @@ export function CmsEditorShell({
         </div>
       ) : null}
 
-      <s-section heading={`${typeLabel} settings`}>
+      {/* Page/layout settings — opened by the gear button in the editor header. */}
+      <s-modal
+        id="cms-page-settings"
+        ref={pageSettingsModalRef}
+        heading={`${typeLabel} settings`}
+        size="large"
+      >
         {metaError ? (
           <s-banner tone="critical" heading="Image upload failed">
             <s-paragraph>{metaError}</s-paragraph>
@@ -504,7 +542,7 @@ export function CmsEditorShell({
                   <s-option value="flatList">Flat list</s-option>
                 </s-select>
 
-                <s-text-field
+                <s-color-field
                   label="Background color"
                   name="backgroundColor"
                   placeholder="#ffffff"
@@ -512,7 +550,7 @@ export function CmsEditorShell({
                   onChange={(e) =>
                     setField("backgroundColor", e.currentTarget.value)
                   }
-                ></s-text-field>
+                ></s-color-field>
               </s-grid>
 
               <s-stack direction="inline" gap="base">
@@ -534,131 +572,127 @@ export function CmsEditorShell({
                 ></s-checkbox>
               </s-stack>
 
-              <s-divider />
-
-              {/* Collapsible SEO & social group — collapsed by default to keep the
-              meta box compact above the editor. */}
-              <s-stack
-                direction="inline"
-                gap="base"
-                alignItems="center"
-                justifyContent="space-between"
-              >
-                <s-stack direction="block" gap="none">
-                  <s-heading>Search engine &amp; social</s-heading>
-                  <s-text color="subdued">{seoSummary}</s-text>
-                </s-stack>
-                <s-button
-                  variant="tertiary"
-                  onClick={() => setShowSeo((v) => !v)}
-                >
-                  {showSeo ? "Hide" : "Edit"}
-                </s-button>
-              </s-stack>
-
-              {showSeo ? (
-                <s-stack direction="block" gap="base">
-                  <s-grid gridTemplateColumns={twoCol} gap="base">
-                    <s-text-field
-                      label="SEO title"
-                      name="seoTitle"
-                      maxLength={70}
-                      placeholder="Defaults to the page title"
-                      details={`${meta.seoTitle.length}/70`}
-                      value={meta.seoTitle}
-                      onChange={(e) =>
-                        setField("seoTitle", e.currentTarget.value)
-                      }
-                    ></s-text-field>
-
-                    <s-text-field
-                      label="Keywords"
-                      name="keywords"
-                      placeholder="comma, separated, keywords"
-                      details="Comma-separated."
-                      value={meta.keywords}
-                      onChange={(e) =>
-                        setField("keywords", e.currentTarget.value)
-                      }
-                    ></s-text-field>
-                  </s-grid>
-
-                  <s-text-area
-                    label="Meta description"
-                    name="seoDescription"
-                    rows={2}
-                    maxLength={160}
-                    details={`${meta.seoDescription.length}/160`}
-                    value={meta.seoDescription}
-                    onChange={(e) =>
-                      setField("seoDescription", e.currentTarget.value)
-                    }
-                  ></s-text-area>
-
-                  {/* OG image — thumbnail and controls inline to stay compact. */}
-                  <s-stack direction="block" gap="small">
-                    <s-text color="subdued">Social / OG image</s-text>
-                    <s-grid
-                      gridTemplateColumns={twoCol}
-                      gap="base"
-                      alignItems="end"
-                    >
-                      <s-stack
-                        direction="inline"
-                        gap="base"
-                        alignItems="center"
-                      >
-                        {meta.ogImage ? (
-                          <s-thumbnail
-                            size="large"
-                            src={meta.ogImage}
-                            alt="OG image"
-                          />
-                        ) : null}
-                        <s-stack direction="inline" gap="small">
-                          <s-button
-                            variant="secondary"
-                            onClick={() => ogFileInputRef.current?.click()}
-                            {...(uploadingOg ? { loading: true } : {})}
-                          >
-                            {meta.ogImage ? "Replace" : "Upload"}
-                          </s-button>
-                          {meta.ogImage ? (
-                            <s-button
-                              variant="tertiary"
-                              tone="critical"
-                              onClick={() => setField("ogImage", "")}
-                            >
-                              Remove
-                            </s-button>
-                          ) : null}
-                        </s-stack>
-                      </s-stack>
-                      <s-text-field
-                        label="Image URL"
-                        labelAccessibilityVisibility="exclusive"
-                        name="ogImage"
-                        placeholder="https://…"
-                        value={meta.ogImage}
-                        onChange={(e) =>
-                          setField("ogImage", e.currentTarget.value)
-                        }
-                      ></s-text-field>
-                    </s-grid>
-                    <input
-                      ref={ogFileInputRef}
-                      type="file"
-                      accept="image/*"
-                      style={{ display: "none" }}
-                      onChange={onOgFileChange}
-                    />
-                  </s-stack>
-                </s-stack>
-              ) : null}
             </>
           ) : null}
         </s-stack>
-      </s-section>
+
+        <s-button
+          slot="primary-action"
+          variant="primary"
+          onClick={() => pageSettingsModalRef.current?.hideOverlay?.()}
+        >
+          Done
+        </s-button>
+      </s-modal>
+
+      {/* SEO & social — opened by the magnifier button in the editor header.
+          Pages only; headers/footers carry no SEO fields. */}
+      {isPage ? (
+        <s-modal
+          id="cms-seo-settings"
+          ref={seoModalRef}
+          heading="Search engine & social"
+          size="large"
+        >
+          {metaError ? (
+            <s-banner tone="critical" heading="Image upload failed">
+              <s-paragraph>{metaError}</s-paragraph>
+            </s-banner>
+          ) : null}
+
+          <s-stack direction="block" gap="base">
+            <s-text color="subdued">{seoSummary}</s-text>
+
+            <s-grid gridTemplateColumns={twoCol} gap="base">
+              <s-text-field
+                label="SEO title"
+                name="seoTitle"
+                maxLength={70}
+                placeholder="Defaults to the page title"
+                details={`${meta.seoTitle.length}/70`}
+                value={meta.seoTitle}
+                onChange={(e) => setField("seoTitle", e.currentTarget.value)}
+              ></s-text-field>
+
+              <s-text-field
+                label="Keywords"
+                name="keywords"
+                placeholder="comma, separated, keywords"
+                details="Comma-separated."
+                value={meta.keywords}
+                onChange={(e) => setField("keywords", e.currentTarget.value)}
+              ></s-text-field>
+            </s-grid>
+
+            <s-text-area
+              label="Meta description"
+              name="seoDescription"
+              rows={2}
+              maxLength={160}
+              details={`${meta.seoDescription.length}/160`}
+              value={meta.seoDescription}
+              onChange={(e) => setField("seoDescription", e.currentTarget.value)}
+            ></s-text-area>
+
+            {/* OG image — thumbnail and controls inline to stay compact. */}
+            <s-stack direction="block" gap="small">
+              <s-text color="subdued">Social / OG image</s-text>
+              <s-grid gridTemplateColumns={twoCol} gap="base" alignItems="end">
+                <s-stack direction="inline" gap="base" alignItems="center">
+                  {meta.ogImage ? (
+                    <s-thumbnail
+                      size="large"
+                      src={meta.ogImage}
+                      alt="OG image"
+                    />
+                  ) : null}
+                  <s-stack direction="inline" gap="small">
+                    <s-button
+                      variant="secondary"
+                      onClick={() => ogFileInputRef.current?.click()}
+                      {...(uploadingOg ? { loading: true } : {})}
+                    >
+                      {meta.ogImage ? "Replace" : "Upload"}
+                    </s-button>
+                    {meta.ogImage ? (
+                      <s-button
+                        variant="tertiary"
+                        tone="critical"
+                        onClick={() => setField("ogImage", "")}
+                      >
+                        Remove
+                      </s-button>
+                    ) : null}
+                  </s-stack>
+                </s-stack>
+                <s-text-field
+                  label="Image URL"
+                  labelAccessibilityVisibility="exclusive"
+                  name="ogImage"
+                  placeholder="https://…"
+                  value={meta.ogImage}
+                  onChange={(e) => setField("ogImage", e.currentTarget.value)}
+                ></s-text-field>
+              </s-grid>
+              <input
+                ref={ogFileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={onOgFileChange}
+              />
+            </s-stack>
+          </s-stack>
+
+          <s-button
+            slot="primary-action"
+            variant="primary"
+            onClick={() => seoModalRef.current?.hideOverlay?.()}
+          >
+            Done
+          </s-button>
+        </s-modal>
+      ) : null}
 
       <ClientBlockEditor
         fallback={<EditorFallback />}
@@ -676,6 +710,8 @@ export function CmsEditorShell({
           options: true,         // options (⋮) menu
         }}
         onLoad={onLoad}
+        // Gear + magnifier buttons in the editor header open the settings modals.
+        customButtons={customButtons}
         // Button-action registry shared by every block's <ActionBuilder>.
         actions={cmsEditorActions}
         unregisterBlocks={["core/breadcrumbs","core/table","core/code","core/gallery","core/shortcode","core/search","core/tag-cloud","core/html"]}
