@@ -6,6 +6,7 @@ import blockLibraryStyles from "@wordpress/block-library/build-style/style.css?u
 import riyasatCarouselStyles from "../blocks/riyasat/image-carousel.css?url";
 import riyasatTrustBadgesStyles from "../blocks/riyasat/trust-badges.css?url";
 import riyasatImageSliderStyles from "../blocks/riyasat/image-slider.css?url";
+import riyasatShopTheLookStyles from "../blocks/riyasat/shop-the-look.css?url";
 
 import { getPageBySlug } from "../lib/cms.server";
 
@@ -14,6 +15,7 @@ export const links: LinksFunction = () => [
   { rel: "stylesheet", href: riyasatCarouselStyles },
   { rel: "stylesheet", href: riyasatTrustBadgesStyles },
   { rel: "stylesheet", href: riyasatImageSliderStyles },
+  { rel: "stylesheet", href: riyasatShopTheLookStyles },
 ];
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {

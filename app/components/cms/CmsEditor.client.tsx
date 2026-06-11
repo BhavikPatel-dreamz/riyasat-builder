@@ -3,6 +3,7 @@ import "gutenberg-block-kit/styles";
 import "../../blocks/riyasat/image-carousel.css";
 import "../../blocks/riyasat/trust-badges.css";
 import "../../blocks/riyasat/image-slider.css";
+import "../../blocks/riyasat/shop-the-look.css";
 import { BlockEditor } from "gutenberg-block-kit/editor";
 
 type CmsEditorProps = {

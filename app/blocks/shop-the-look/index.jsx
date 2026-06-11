@@ -25,7 +25,7 @@ import {
   RIYASAT_CATEGORY,
 } from '../constants';
 
-const DEFAULT_BACKGROUND = '#f5f5f5';
+const DEFAULT_BACKGROUND = '#f5ead6';
 
 function ShopTheLookIcon() {
   return (
@@ -192,27 +192,12 @@ function registerShopTheLookItem() {
             </PanelBody>
           </InspectorControls>
 
-          <div
-            {...blockProps}
-            style={{
-              position: 'relative',
-              width: '230px',
-              flexShrink: 0,
-              borderRadius: '12px',
-              overflow: 'hidden',
-              background: '#2a2a4a',
-            }}
-          >
+          <div {...blockProps}>
             {thumbnailUrl ? (
               <img
                 src={thumbnailUrl}
                 alt=""
-                style={{
-                  width: '100%',
-                  height: '320px',
-                  objectFit: 'cover',
-                  display: 'block',
-                }}
+                className="riyasat-shop-the-look-item-editor__thumbnail"
               />
             ) : (
               <MediaUploadCheck>
@@ -224,18 +209,8 @@ function registerShopTheLookItem() {
                   render={({ open }) => (
                     <button
                       type="button"
+                      className="riyasat-shop-the-look-item-editor__thumbnail-btn"
                       onClick={open}
-                      style={{
-                        width: '100%',
-                        height: '320px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        color: '#fff',
-                        background: '#2a2a4a',
-                        border: 'none',
-                      }}
                     >
                       Add thumbnail
                     </button>
@@ -244,60 +219,12 @@ function registerShopTheLookItem() {
               </MediaUploadCheck>
             )}
 
-            {/* Play button overlay — centered */}
-            <div
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: '56px',
-                height: '56px',
-                borderRadius: '50%',
-                background: 'rgba(255,255,255,0.92)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.25)',
-              }}
-            >
-              <span
-                style={{
-                  width: 0,
-                  height: 0,
-                  marginLeft: '4px',
-                  borderTop: '10px solid transparent',
-                  borderBottom: '10px solid transparent',
-                  borderLeft: '16px solid #b3024a',
-                }}
-              />
+            <div className="riyasat-shop-the-look-item-editor__play" aria-hidden="true">
+              <span className="riyasat-shop-the-look-item-editor__play-icon" />
             </div>
 
-            {/* SHOP NOW button — bottom */}
-            <div
-              style={{
-                position: 'absolute',
-                left: 0,
-                right: 0,
-                bottom: 0,
-                padding: '14px',
-                textAlign: 'center',
-                background:
-                  'linear-gradient(to top, rgba(0,0,0,0.55), rgba(0,0,0,0))',
-              }}
-            >
-              <span
-                style={{
-                  display: 'inline-block',
-                  padding: '10px 28px',
-                  background: '#b3024a',
-                  color: '#fff',
-                  borderRadius: '4px',
-                  fontWeight: 700,
-                  fontSize: '12px',
-                  letterSpacing: '1px',
-                }}
-              >
+            <div className="riyasat-shop-the-look-item-editor__cta-wrap">
+              <span className="riyasat-shop-the-look-item-editor__cta">
                 {buttonText || 'SHOP NOW'}
               </span>
             </div>
@@ -398,51 +325,18 @@ function registerShopTheLookParent() {
           <div {...blockProps}>
             <div
               className="riyasat-shop-the-look"
-              style={{
-                background: backgroundColor,
-                padding: '24px',
-                borderRadius: '8px',
-              }}
+              style={{ background: backgroundColor }}
             >
-              <div
-                className="riyasat-shop-the-look__heading"
-                style={{ textAlign: 'center' }}
-              >
+              <div className="riyasat-shop-the-look__heading">
                 {subTitle ? (
-                  <p
-                    className="riyasat-shop-the-look__subtitle"
-                    style={{
-                      margin: '0 0 6px',
-                      color: '#c9a86a',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      letterSpacing: '2px',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    {subTitle}
-                  </p>
+                  <p className="riyasat-shop-the-look__subtitle">{subTitle}</p>
                 ) : null}
                 {title ? (
-                  <h3
-                    className="riyasat-shop-the-look__title"
-                    style={{
-                      margin: '0 0 20px',
-                      fontSize: '28px',
-                      fontWeight: 700,
-                      color: '#fff',
-                      fontFamily: 'Georgia, "Times New Roman", serif',
-                    }}
-                  >
-                    {title}
-                  </h3>
+                  <h3 className="riyasat-shop-the-look__title">{title}</h3>
                 ) : null}
               </div>
 
-              <div
-                className="riyasat-shop-the-look__track"
-                style={{ display: 'flex', gap: '16px', overflowX: 'auto' }}
-              >
+              <div className="riyasat-shop-the-look__track">
                 <InnerBlocks
                   allowedBlocks={[SHOP_THE_LOOK_ITEM_BLOCK]}
                   template={[
@@ -457,39 +351,10 @@ function registerShopTheLookParent() {
               </div>
 
               {showPagination ? (
-                <div
-                  className="riyasat-shop-the-look__pagination"
-                  style={{
-                    display: 'flex',
-                    gap: '6px',
-                    justifyContent: 'center',
-                    marginTop: '16px',
-                  }}
-                >
-                  <span
-                    style={{
-                      width: '18px',
-                      height: '6px',
-                      borderRadius: '3px',
-                      background: '#b3024a',
-                    }}
-                  />
-                  <span
-                    style={{
-                      width: '6px',
-                      height: '6px',
-                      borderRadius: '50%',
-                      background: 'rgba(255,255,255,0.4)',
-                    }}
-                  />
-                  <span
-                    style={{
-                      width: '6px',
-                      height: '6px',
-                      borderRadius: '50%',
-                      background: 'rgba(255,255,255,0.4)',
-                    }}
-                  />
+                <div className="riyasat-shop-the-look__pagination" aria-hidden="true">
+                  <span className="riyasat-shop-the-look__pagination-dot riyasat-shop-the-look__pagination-dot--active" />
+                  <span className="riyasat-shop-the-look__pagination-dot riyasat-shop-the-look__pagination-dot--inactive" />
+                  <span className="riyasat-shop-the-look__pagination-dot riyasat-shop-the-look__pagination-dot--inactive" />
                 </div>
               ) : null}
             </div>
