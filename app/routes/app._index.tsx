@@ -87,7 +87,7 @@ function PageRowActions({ page }: { page: PageRow }) {
         </s-button>
       </fetcher.Form>
 
-      {page.status === "published" ? (
+      {/* {page.status === "published" ? (
         <s-button
           href={`/pages/${page.slug}`}
           target="_blank"
@@ -95,7 +95,7 @@ function PageRowActions({ page }: { page: PageRow }) {
         >
           Preview
         </s-button>
-      ) : null}
+      ) : null} */}
 
       <fetcher.Form
         method="post"
