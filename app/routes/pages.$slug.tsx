@@ -11,6 +11,7 @@ import riyasatProductScrollerStyles from "../blocks/riyasat/product-scroller.css
 import riyasatFreeConsultationStyles from "../blocks/riyasat/free-consultation.css?url";
 import riyasatEditorsPickStyles from "../blocks/riyasat/editors-pick.css?url";
 import riyasatClientStoriesStyles from "../blocks/riyasat/client-stories.css?url";
+import riyasatVisitOurStoresStyles from "../blocks/riyasat/visit-our-stores.css?url";
 
 import { getPageBySlug } from "../lib/cms.server";
 
@@ -24,6 +25,7 @@ export const links: LinksFunction = () => [
   { rel: "stylesheet", href: riyasatFreeConsultationStyles },
   { rel: "stylesheet", href: riyasatEditorsPickStyles },
   { rel: "stylesheet", href: riyasatClientStoriesStyles },
+  { rel: "stylesheet", href: riyasatVisitOurStoresStyles },
 ];
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {

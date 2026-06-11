@@ -2,6 +2,7 @@
 // Visit our stores — parent (core/visit-our-stores) + child store card
 // (core/visit-our-stores-item) using InnerBlocks. Authored against the kit's
 // shared @wordpress runtime; registered from ../index.ts.
+import { useState, useEffect } from 'gutenberg-block-kit/wp/element';
 import { registerBlockType } from 'gutenberg-block-kit/wp/blocks';
 import {
   useBlockProps,
@@ -15,8 +16,10 @@ import {
   PanelBody,
   TextControl,
   TextareaControl,
+  ToggleControl,
   Button,
 } from 'gutenberg-block-kit/wp/components';
+import { useSelect } from 'gutenberg-block-kit/wp/data';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
 import {
   VISIT_OUR_STORES_BLOCK,
@@ -147,28 +150,27 @@ function registerVisitOurStoresItem() {
             </PanelBody>
           </InspectorControls>
 
-          <div
-            {...blockProps}
-            style={{
-              width: '240px',
-              flexShrink: 0,
-              background: '#fff',
-              borderRadius: '8px',
-              overflow: 'hidden',
-              border: '1px solid rgba(0,0,0,0.08)',
-            }}
-          >
+          <div {...blockProps}>
             {imageUrl ? (
-              <img
-                src={imageUrl}
-                alt=""
-                style={{
-                  width: '100%',
-                  height: '160px',
-                  objectFit: 'cover',
-                  display: 'block',
-                }}
-              />
+              <MediaUploadCheck>
+                <MediaUpload
+                  onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+                  allowedTypes={['image']}
+                  render={({ open }) => (
+                    <img
+                      src={imageUrl}
+                      alt=""
+                      className="riyasat-visit-our-stores-item-editor__image"
+                      onClick={open}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') open();
+                      }}
+                      role="button"
+                      tabIndex={0}
+                    />
+                  )}
+                />
+              </MediaUploadCheck>
             ) : (
               <MediaUploadCheck>
                 <MediaUpload
@@ -177,18 +179,8 @@ function registerVisitOurStoresItem() {
                   render={({ open }) => (
                     <button
                       type="button"
+                      className="riyasat-visit-our-stores-item-editor__image-btn"
                       onClick={open}
-                      style={{
-                        width: '100%',
-                        height: '160px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        color: '#fff',
-                        background: '#2a2a4a',
-                        border: 'none',
-                      }}
                     >
                       Add image
                     </button>
@@ -196,26 +188,28 @@ function registerVisitOurStoresItem() {
                 />
               </MediaUploadCheck>
             )}
-            <div style={{ padding: '12px' }}>
-              <TextControl
-                label=""
+
+            <div className="riyasat-visit-our-stores-item-editor__body">
+              <input
+                type="text"
+                className="riyasat-visit-our-stores-item-editor__field"
                 value={storeName}
                 placeholder="Store name…"
-                onChange={(value) => setAttributes({ storeName: value })}
+                onChange={(event) => setAttributes({ storeName: event.target.value })}
               />
-              <TextareaControl
-                label=""
+              <textarea
+                className="riyasat-visit-our-stores-item-editor__field riyasat-visit-our-stores-item-editor__field--address"
                 value={address}
-                rows={2}
                 placeholder="Address…"
-                onChange={(value) => setAttributes({ address: value })}
+                rows={3}
+                onChange={(event) => setAttributes({ address: event.target.value })}
               />
-              <TextControl
-                label=""
+              <input
                 type="url"
+                className="riyasat-visit-our-stores-item-editor__field"
                 value={mapLink}
                 placeholder="Google Maps link…"
-                onChange={(value) => setAttributes({ mapLink: value })}
+                onChange={(event) => setAttributes({ mapLink: event.target.value })}
               />
             </div>
           </div>
@@ -261,13 +255,13 @@ function registerVisitOurStoresItem() {
 }
 
 // ---------------------------------------------------------------------------
-// Parent: core/visit-our-stores — heading + row of store cards
+// Parent: core/visit-our-stores — heading + horizontal row of store cards
 // ---------------------------------------------------------------------------
 function registerVisitOurStoresParent() {
   registerBlockType(VISIT_OUR_STORES_BLOCK, {
     apiVersion: 3,
     title: 'Visit Our Stores',
-    description: 'A titled row of store cards on a colored background.',
+    description: 'A titled, horizontally scrolling row of store cards.',
     category: RIYASAT_CATEGORY,
     icon: VisitOurStoresIcon,
     keywords: ['stores', 'locations', 'map', 'address'],
@@ -277,13 +271,27 @@ function registerVisitOurStoresParent() {
       subTitle: { type: 'string', default: '' },
       backgroundColor: { type: 'string', default: DEFAULT_BACKGROUND },
       action: { type: 'object', default: {} },
+      showPagination: { type: 'boolean', default: true },
     },
 
-    edit: ({ attributes, setAttributes }) => {
-      const { title, subTitle, backgroundColor, action } = attributes;
+    edit: ({ attributes, setAttributes, clientId }) => {
+      const { title, subTitle, backgroundColor, action, showPagination } = attributes;
       const blockProps = useBlockProps({
         className: 'riyasat-visit-our-stores-editor',
       });
+      const [activeIndex, setActiveIndex] = useState(0);
+      const storeCount = useSelect(
+        (select) => select('core/block-editor').getBlockCount(clientId),
+        [clientId],
+      );
+
+      useEffect(() => {
+        if (storeCount <= 0) {
+          setActiveIndex(0);
+          return;
+        }
+        if (activeIndex > storeCount - 1) setActiveIndex(storeCount - 1);
+      }, [activeIndex, storeCount]);
 
       return (
         <>
@@ -298,6 +306,14 @@ function registerVisitOurStoresParent() {
                 label="Subtitle"
                 value={subTitle}
                 onChange={(value) => setAttributes({ subTitle: value })}
+              />
+            </PanelBody>
+
+            <PanelBody title="Settings" initialOpen={true}>
+              <ToggleControl
+                label="Show pagination"
+                checked={showPagination}
+                onChange={(value) => setAttributes({ showPagination: value })}
               />
             </PanelBody>
 
@@ -325,35 +341,20 @@ function registerVisitOurStoresParent() {
           <div {...blockProps}>
             <div
               className="riyasat-visit-our-stores"
-              style={{
-                background: backgroundColor,
-                padding: '24px',
-                borderRadius: '8px',
-              }}
+              style={{ background: backgroundColor }}
             >
-              <div className="riyasat-visit-our-stores__heading">
-                {subTitle ? (
-                  <p
-                    className="riyasat-visit-our-stores__subtitle"
-                    style={{ margin: '0 0 4px', color: '#888', fontSize: '13px' }}
-                  >
-                    {subTitle}
-                  </p>
-                ) : null}
-                {title ? (
-                  <h3
-                    className="riyasat-visit-our-stores__title"
-                    style={{ margin: '0 0 16px', fontSize: '22px', fontWeight: 700 }}
-                  >
-                    {title}
-                  </h3>
-                ) : null}
-              </div>
+              {(subTitle || title) && (
+                <div className="riyasat-visit-our-stores__heading">
+                  {subTitle ? (
+                    <p className="riyasat-visit-our-stores__subtitle">{subTitle}</p>
+                  ) : null}
+                  {title ? (
+                    <h3 className="riyasat-visit-our-stores__title">{title}</h3>
+                  ) : null}
+                </div>
+              )}
 
-              <div
-                className="riyasat-visit-our-stores__track"
-                style={{ display: 'flex', gap: '16px', overflowX: 'auto' }}
-              >
+              <div className="riyasat-visit-our-stores__track">
                 <InnerBlocks
                   allowedBlocks={[VISIT_OUR_STORES_ITEM_BLOCK]}
                   template={[
@@ -365,6 +366,22 @@ function registerVisitOurStoresParent() {
                   orientation="horizontal"
                 />
               </div>
+
+              {showPagination && storeCount > 1 ? (
+                <div className="riyasat-visit-our-stores__pagination">
+                  {Array.from({ length: storeCount }).map((_, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      className={`riyasat-visit-our-stores__dot${
+                        index === activeIndex ? ' is-active' : ''
+                      }`}
+                      aria-label={`Go to store ${index + 1}`}
+                      onClick={() => setActiveIndex(index)}
+                    />
+                  ))}
+                </div>
+              ) : null}
             </div>
           </div>
         </>
@@ -372,11 +389,12 @@ function registerVisitOurStoresParent() {
     },
 
     save: ({ attributes }) => {
-      const { title, subTitle, backgroundColor, action } = attributes;
+      const { title, subTitle, backgroundColor, action, showPagination } = attributes;
       const blockProps = useBlockProps.save({
         className: 'riyasat-visit-our-stores',
         'data-background-color': backgroundColor,
         'data-action': JSON.stringify(action ?? {}),
+        'data-show-pagination': showPagination ? 'true' : 'false',
         style: { background: backgroundColor },
       });
       return (
@@ -392,6 +410,9 @@ function registerVisitOurStoresParent() {
           <div className="riyasat-visit-our-stores__track">
             <InnerBlocks.Content />
           </div>
+          {showPagination ? (
+            <div className="riyasat-visit-our-stores__pagination" aria-hidden="true" />
+          ) : null}
         </div>
       );
     },
