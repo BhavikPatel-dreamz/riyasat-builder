@@ -140,22 +140,27 @@ function registerImageSliderItem() {
             </PanelBody>
           </InspectorControls>
 
-          <div
-            {...blockProps}
-            style={{ width: '180px', flexShrink: 0, textAlign: 'center' }}
-          >
+          <div {...blockProps}>
             {imageUrl ? (
-              <img
-                src={imageUrl}
-                alt=""
-                style={{
-                  width: '100%',
-                  height: '220px',
-                  objectFit: 'cover',
-                  borderRadius: '8px',
-                  display: 'block',
-                }}
-              />
+              <MediaUploadCheck>
+                <MediaUpload
+                  onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+                  allowedTypes={['image']}
+                  render={({ open }) => (
+                    <img
+                      src={imageUrl}
+                      alt=""
+                      className="riyasat-image-slider-item-editor__image"
+                      onClick={open}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') open();
+                      }}
+                      role="button"
+                      tabIndex={0}
+                    />
+                  )}
+                />
+              </MediaUploadCheck>
             ) : (
               <MediaUploadCheck>
                 <MediaUpload
@@ -164,19 +169,8 @@ function registerImageSliderItem() {
                   render={({ open }) => (
                     <button
                       type="button"
+                      className="riyasat-image-slider-item-editor__image-btn"
                       onClick={open}
-                      style={{
-                        width: '100%',
-                        height: '220px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        color: '#fff',
-                        background: '#2a2a4a',
-                        border: 'none',
-                        borderRadius: '8px',
-                      }}
                     >
                       Add image
                     </button>
@@ -184,11 +178,12 @@ function registerImageSliderItem() {
                 />
               </MediaUploadCheck>
             )}
-            <TextControl
-              label=""
+            <input
+              type="text"
+              className="riyasat-image-slider-item-editor__label"
               value={label}
               placeholder="Label…"
-              onChange={(value) => setAttributes({ label: value })}
+              onChange={(event) => setAttributes({ label: event.target.value })}
             />
           </div>
         </>
@@ -287,10 +282,7 @@ function registerImageSliderParent() {
                 </div>
               )}
 
-              <div
-                className="riyasat-image-slider__track"
-                style={{ display: 'flex', gap: '16px', overflowX: 'auto' }}
-              >
+              <div className="riyasat-image-slider__track">
                 <InnerBlocks
                   allowedBlocks={[IMAGE_SLIDER_ITEM_BLOCK]}
                   template={[
@@ -304,15 +296,7 @@ function registerImageSliderParent() {
               </div>
 
               {showPagination && slideCount > 1 ? (
-                <div
-                  className="riyasat-image-slider__pagination"
-                  style={{
-                    display: 'flex',
-                    gap: '8px',
-                    justifyContent: 'center',
-                    marginTop: '12px',
-                  }}
-                >
+                <div className="riyasat-image-slider__pagination">
                   {Array.from({ length: slideCount }).map((_, index) => (
                     <button
                       key={index}
@@ -322,16 +306,6 @@ function registerImageSliderParent() {
                       }`}
                       aria-label={`Go to slide ${index + 1}`}
                       onClick={() => setActiveIndex(index)}
-                      style={{
-                        width: index === activeIndex ? '24px' : '10px',
-                        height: '10px',
-                        borderRadius: '999px',
-                        border: 'none',
-                        padding: 0,
-                        cursor: 'pointer',
-                        background:
-                          index === activeIndex ? '#1a1a2e' : 'rgba(0,0,0,0.25)',
-                      }}
                     />
                   ))}
                 </div>

@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import "gutenberg-block-kit/styles";
 import "../../blocks/riyasat/image-carousel.css";
 import "../../blocks/riyasat/trust-badges.css";
+import "../../blocks/riyasat/image-slider.css";
 import { BlockEditor } from "gutenberg-block-kit/editor";
 
 type CmsEditorProps = {
