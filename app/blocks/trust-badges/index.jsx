@@ -2,7 +2,7 @@
 // Trust badges — parent (core/trust-badges) + child badge
 // (core/trust-badges-item) using InnerBlocks. Authored against the kit's shared
 // @wordpress runtime. Registered from ../index.ts inside registerBlocks().
-import { registerBlockType } from 'gutenberg-block-kit/wp/blocks';
+import { registerBlockType, createBlock } from 'gutenberg-block-kit/wp/blocks';
 import {
   useBlockProps,
   InnerBlocks,
@@ -13,6 +13,7 @@ import {
 } from 'gutenberg-block-kit/wp/block-editor';
 import { PanelBody, TextControl, Button } from 'gutenberg-block-kit/wp/components';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
+import { contentTabStyle, ImagePicker, useChildBlocks } from '../inspector-shared';
 import {
   TRUST_BADGES_BLOCK,
   TRUST_BADGES_ITEM_BLOCK,
@@ -65,76 +66,28 @@ function registerTrustBadgesItem() {
 
       return (
         <>
-          <InspectorControls>
-            <PanelBody title="Icon" initialOpen={true}>
-              <MediaUploadCheck>
-                <MediaUpload
-                  onSelect={(media) => setAttributes({ icon: media?.url ?? '' })}
-                  allowedTypes={['image']}
-                  render={({ open }) => (
-                    <div>
-                      {icon ? (
-                        <div
-                          onClick={open}
-                          style={{
-                            marginBottom: '8px',
-                            borderRadius: '6px',
-                            overflow: 'hidden',
-                            cursor: 'pointer',
-                            border: '1px solid #ddd',
-                            display: 'inline-block',
-                          }}
-                        >
-                          <img
-                            src={icon}
-                            alt=""
-                            style={{
-                              width: '64px',
-                              height: '64px',
-                              objectFit: 'contain',
-                              display: 'block',
-                            }}
-                          />
-                        </div>
-                      ) : null}
-                      <Button
-                        onClick={open}
-                        variant="secondary"
-                        style={{ width: '100%', justifyContent: 'center' }}
-                      >
-                        {icon ? 'Change Icon' : 'Add Icon'}
-                      </Button>
-                      {icon ? (
-                        <Button
-                          onClick={() => setAttributes({ icon: '' })}
-                          variant="link"
-                          isDestructive
-                          style={{ marginTop: '4px' }}
-                        >
-                          Remove Icon
-                        </Button>
-                      ) : null}
-                    </div>
-                  )}
+          <InspectorControls group="content">
+            <div style={contentTabStyle}>
+              <PanelBody title="Badge" initialOpen={true}>
+                <ImagePicker
+                  imageUrl={icon}
+                  addLabel="Add icon"
+                  changeLabel="Change icon"
+                  onSelect={(url) => setAttributes({ icon: url })}
+                  onClear={() => setAttributes({ icon: '' })}
                 />
-              </MediaUploadCheck>
-            </PanelBody>
-
-            <PanelBody title="Label" initialOpen={true}>
-              <TextControl
-                label="Label"
-                value={label}
-                onChange={(value) => setAttributes({ label: value })}
-              />
-            </PanelBody>
-
-            <PanelBody title="Action" initialOpen={true}>
-              <ActionBuilder
-                label="Tap action"
-                value={action}
-                onChange={(next) => setAttributes({ action: next })}
-              />
-            </PanelBody>
+                <TextControl
+                  label="Label"
+                  value={label}
+                  onChange={(value) => setAttributes({ label: value })}
+                />
+                <ActionBuilder
+                  label="Tap action"
+                  value={action}
+                  onChange={(next) => setAttributes({ action: next })}
+                />
+              </PanelBody>
+            </div>
           </InspectorControls>
 
           <div {...blockProps}>
@@ -224,26 +177,86 @@ function registerTrustBadgesParent() {
       backgroundColor: { type: 'string', default: DEFAULT_BACKGROUND },
     },
 
-    edit: ({ attributes, setAttributes }) => {
+    edit: ({ attributes, setAttributes, clientId }) => {
       const { backgroundColor } = attributes;
       const blockProps = useBlockProps({
         className: 'riyasat-trust-badges-editor',
       });
+      const { childBlocks, childCount, insertBlock, removeBlock, updateBlockAttributes } =
+        useChildBlocks(clientId);
 
       return (
         <>
+          <InspectorControls group="content">
+            <div style={contentTabStyle}>
+              {childBlocks.map((block, index) => {
+                const { icon, label, action } = block.attributes;
+                return (
+                  <PanelBody
+                    key={block.clientId}
+                    title={`Badge ${index + 1}`}
+                    initialOpen={false}
+                  >
+                    <ImagePicker
+                      imageUrl={icon}
+                      addLabel="Add icon"
+                      changeLabel="Change icon"
+                      onSelect={(url) => updateBlockAttributes(block.clientId, { icon: url })}
+                      onClear={() => updateBlockAttributes(block.clientId, { icon: '' })}
+                    />
+                    <TextControl
+                      label="Label"
+                      value={label}
+                      onChange={(value) =>
+                        updateBlockAttributes(block.clientId, { label: value })
+                      }
+                    />
+                    <ActionBuilder
+                      label="Tap action"
+                      value={action}
+                      onChange={(next) =>
+                        updateBlockAttributes(block.clientId, { action: next })
+                      }
+                    />
+                    {childCount > 1 ? (
+                      <Button
+                        onClick={() => removeBlock(block.clientId)}
+                        variant="link"
+                        isDestructive
+                        style={{ marginTop: '8px' }}
+                      >
+                        Remove badge
+                      </Button>
+                    ) : null}
+                  </PanelBody>
+                );
+              })}
+              <Button
+                variant="primary"
+                onClick={() =>
+                  insertBlock(createBlock(TRUST_BADGES_ITEM_BLOCK, {}), childCount, clientId)
+                }
+                style={{ width: '100%', justifyContent: 'center' }}
+              >
+                Add badge
+              </Button>
+            </div>
+          </InspectorControls>
+
           <InspectorControls>
-            <PanelColorSettings
-              title="Colors"
-              colorSettings={[
-                {
-                  label: 'Background color',
-                  value: backgroundColor,
-                  onChange: (value) =>
-                    setAttributes({ backgroundColor: value || DEFAULT_BACKGROUND }),
-                },
-              ]}
-            />
+            <PanelBody title="Settings" initialOpen={true}>
+              <PanelColorSettings
+                title="Colors"
+                colorSettings={[
+                  {
+                    label: 'Background color',
+                    value: backgroundColor,
+                    onChange: (value) =>
+                      setAttributes({ backgroundColor: value || DEFAULT_BACKGROUND }),
+                  },
+                ]}
+              />
+            </PanelBody>
           </InspectorControls>
 
           <div {...blockProps}>
@@ -259,7 +272,7 @@ function registerTrustBadgesParent() {
                   [TRUST_BADGES_ITEM_BLOCK, {}],
                 ]}
                 templateLock={false}
-                renderAppender={InnerBlocks.ButtonBlockAppender}
+                  renderAppender={false}
                 orientation="horizontal"
               />
             </div>

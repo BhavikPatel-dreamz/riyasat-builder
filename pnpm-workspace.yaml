@@ -10,3 +10,4 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - gutenberg-block-kit@1.1.4
   - gutenberg-block-kit@1.1.5
+  - gutenberg-block-kit@1.1.6

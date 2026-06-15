@@ -2,8 +2,8 @@
 // Editor's Pick — parent (core/editors-pick) + child card
 // (core/editors-pick-item) using InnerBlocks. Authored against the kit's shared
 // @wordpress runtime; registered from ../index.ts.
-import { useState, useEffect } from 'gutenberg-block-kit/wp/element';
-import { registerBlockType } from 'gutenberg-block-kit/wp/blocks';
+import { useState } from 'gutenberg-block-kit/wp/element';
+import { registerBlockType, createBlock } from 'gutenberg-block-kit/wp/blocks';
 import {
   useBlockProps,
   InnerBlocks,
@@ -19,8 +19,8 @@ import {
   ToggleControl,
   Button,
 } from 'gutenberg-block-kit/wp/components';
-import { useSelect } from 'gutenberg-block-kit/wp/data';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
+import { contentTabStyle, ImagePicker, useChildBlocks, useSliderPagination, SliderPaginationDots } from '../inspector-shared';
 import {
   EDITORS_PICK_BLOCK,
   EDITORS_PICK_ITEM_BLOCK,
@@ -75,83 +75,37 @@ function registerEditorsPickItem() {
 
       return (
         <>
-          <InspectorControls>
-            <PanelBody title="Image" initialOpen={true}>
-              <MediaUploadCheck>
-                <MediaUpload
-                  onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
-                  allowedTypes={['image']}
-                  render={({ open }) => (
-                    <div>
-                      {imageUrl ? (
-                        <div
-                          onClick={open}
-                          style={{
-                            marginBottom: '8px',
-                            borderRadius: '6px',
-                            overflow: 'hidden',
-                            cursor: 'pointer',
-                            border: '1px solid #ddd',
-                          }}
-                        >
-                          <img
-                            src={imageUrl}
-                            alt=""
-                            style={{
-                              width: '100%',
-                              height: '80px',
-                              objectFit: 'cover',
-                              display: 'block',
-                            }}
-                          />
-                        </div>
-                      ) : null}
-                      <Button
-                        onClick={open}
-                        variant="secondary"
-                        style={{ width: '100%', justifyContent: 'center' }}
-                      >
-                        {imageUrl ? 'Change Image' : 'Add Image'}
-                      </Button>
-                      {imageUrl ? (
-                        <Button
-                          onClick={() => setAttributes({ imageUrl: '' })}
-                          variant="link"
-                          isDestructive
-                          style={{ marginTop: '4px' }}
-                        >
-                          Remove Image
-                        </Button>
-                      ) : null}
-                    </div>
-                  )}
+          <InspectorControls group="content">
+            <div style={contentTabStyle}>
+              <PanelBody title="Card" initialOpen={true}>
+                <ImagePicker
+                  imageUrl={imageUrl}
+                  onSelect={(url) => setAttributes({ imageUrl: url })}
+                  onClear={() => setAttributes({ imageUrl: '' })}
                 />
-              </MediaUploadCheck>
-            </PanelBody>
-
-            <PanelBody title="Content" initialOpen={true}>
-              <TextControl
-                label="Title"
-                value={title}
-                onChange={(value) => setAttributes({ title: value })}
-              />
-              <TextareaControl
-                label="Description"
-                value={description}
-                rows={3}
-                onChange={(value) => setAttributes({ description: value })}
-              />
-              <TextControl
-                label="Button text"
-                value={buttonText}
-                onChange={(value) => setAttributes({ buttonText: value })}
-              />
-              <ActionBuilder
-                label="Button action"
-                value={action}
-                onChange={(next) => setAttributes({ action: next })}
-              />
-            </PanelBody>
+                <TextControl
+                  label="Title"
+                  value={title}
+                  onChange={(value) => setAttributes({ title: value })}
+                />
+                <TextareaControl
+                  label="Description"
+                  value={description}
+                  rows={3}
+                  onChange={(value) => setAttributes({ description: value })}
+                />
+                <TextControl
+                  label="Button text"
+                  value={buttonText}
+                  onChange={(value) => setAttributes({ buttonText: value })}
+                />
+                <ActionBuilder
+                  label="Button action"
+                  value={action}
+                  onChange={(next) => setAttributes({ action: next })}
+                />
+              </PanelBody>
+            </div>
           </InspectorControls>
 
           <div {...blockProps}>
@@ -269,62 +223,120 @@ function registerEditorsPickParent() {
       const { title, subTitle, backgroundColor, action, showPagination } = attributes;
       const blockProps = useBlockProps({ className: 'riyasat-editors-pick-editor' });
       const [activeIndex, setActiveIndex] = useState(0);
-      const cardCount = useSelect(
-        (select) => select('core/block-editor').getBlockCount(clientId),
-        [clientId],
-      );
-
-      useEffect(() => {
-        if (cardCount <= 0) {
-          setActiveIndex(0);
-          return;
-        }
-        if (activeIndex > cardCount - 1) setActiveIndex(cardCount - 1);
-      }, [activeIndex, cardCount]);
+      const { childBlocks, childCount, insertBlock, removeBlock, updateBlockAttributes } =
+        useChildBlocks(clientId);
+      const { trackRef, slideCount, goToSlide } = useSliderPagination(clientId, activeIndex, setActiveIndex);
 
       return (
         <>
-          <InspectorControls>
-            <PanelBody title="Heading" initialOpen={true}>
-              <TextControl
-                label="Title"
-                value={title}
-                onChange={(value) => setAttributes({ title: value })}
-              />
-              <TextControl
-                label="Subtitle"
-                value={subTitle}
-                onChange={(value) => setAttributes({ subTitle: value })}
-              />
-            </PanelBody>
+          <InspectorControls group="content">
+            <div style={contentTabStyle}>
+              <PanelBody title="Heading" initialOpen={true}>
+                <TextControl
+                  label="Title"
+                  value={title}
+                  onChange={(value) => setAttributes({ title: value })}
+                />
+                <TextControl
+                  label="Subtitle"
+                  value={subTitle}
+                  onChange={(value) => setAttributes({ subTitle: value })}
+                />
+              </PanelBody>
+              {childBlocks.map((block, index) => {
+                const { title: cardTitle, description, imageUrl, buttonText, action } =
+                  block.attributes;
+                return (
+                  <PanelBody
+                    key={block.clientId}
+                    title={`Card ${index + 1}`}
+                    initialOpen={false}
+                  >
+                    <ImagePicker
+                      imageUrl={imageUrl}
+                      onSelect={(url) =>
+                        updateBlockAttributes(block.clientId, { imageUrl: url })
+                      }
+                      onClear={() => updateBlockAttributes(block.clientId, { imageUrl: '' })}
+                    />
+                    <TextControl
+                      label="Title"
+                      value={cardTitle}
+                      onChange={(value) =>
+                        updateBlockAttributes(block.clientId, { title: value })
+                      }
+                    />
+                    <TextareaControl
+                      label="Description"
+                      value={description}
+                      rows={3}
+                      onChange={(value) =>
+                        updateBlockAttributes(block.clientId, { description: value })
+                      }
+                    />
+                    <TextControl
+                      label="Button text"
+                      value={buttonText}
+                      onChange={(value) =>
+                        updateBlockAttributes(block.clientId, { buttonText: value })
+                      }
+                    />
+                    <ActionBuilder
+                      label="Button action"
+                      value={action}
+                      onChange={(next) =>
+                        updateBlockAttributes(block.clientId, { action: next })
+                      }
+                    />
+                    {childCount > 1 ? (
+                      <Button
+                        onClick={() => removeBlock(block.clientId)}
+                        variant="link"
+                        isDestructive
+                        style={{ marginTop: '8px' }}
+                      >
+                        Remove card
+                      </Button>
+                    ) : null}
+                  </PanelBody>
+                );
+              })}
+              <Button
+                variant="primary"
+                onClick={() =>
+                  insertBlock(createBlock(EDITORS_PICK_ITEM_BLOCK, {}), childCount, clientId)
+                }
+                style={{ width: '100%', justifyContent: 'center' }}
+              >
+                Add card
+              </Button>
+            </div>
+          </InspectorControls>
 
+          <InspectorControls>
             <PanelBody title="Settings" initialOpen={true}>
               <ToggleControl
                 label="Show pagination"
                 checked={showPagination}
                 onChange={(value) => setAttributes({ showPagination: value })}
               />
-            </PanelBody>
-
-            <PanelBody title="Section action" initialOpen={false}>
+              <PanelColorSettings
+                title="Colors"
+                colorSettings={[
+                  {
+                    label: 'Background color',
+                    value: backgroundColor,
+                    onChange: (value) =>
+                      setAttributes({ backgroundColor: value || DEFAULT_BACKGROUND }),
+                  },
+                ]}
+              />
               <ActionBuilder
-                label="Action"
+                label="Section action"
                 value={action}
                 onChange={(next) => setAttributes({ action: next })}
               />
             </PanelBody>
-
-            <PanelColorSettings
-              title="Colors"
-              colorSettings={[
-                {
-                  label: 'Background color',
-                  value: backgroundColor,
-                  onChange: (value) =>
-                    setAttributes({ backgroundColor: value || DEFAULT_BACKGROUND }),
-                },
-              ]}
-            />
           </InspectorControls>
 
           <div {...blockProps}>
@@ -343,7 +355,7 @@ function registerEditorsPickParent() {
                 </div>
               )}
 
-              <div className="riyasat-editors-pick__track">
+              <div className="riyasat-editors-pick__track" ref={trackRef}>
                 <InnerBlocks
                   allowedBlocks={[EDITORS_PICK_ITEM_BLOCK]}
                   template={[
@@ -351,25 +363,20 @@ function registerEditorsPickParent() {
                     [EDITORS_PICK_ITEM_BLOCK, {}],
                   ]}
                   templateLock={false}
-                  renderAppender={InnerBlocks.ButtonBlockAppender}
+                  renderAppender={false}
                   orientation="horizontal"
                 />
               </div>
 
-              {showPagination && cardCount > 1 ? (
-                <div className="riyasat-editors-pick__pagination">
-                  {Array.from({ length: cardCount }).map((_, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      className={`riyasat-editors-pick__dot${
-                        index === activeIndex ? ' is-active' : ''
-                      }`}
-                      aria-label={`Go to card ${index + 1}`}
-                      onClick={() => setActiveIndex(index)}
-                    />
-                  ))}
-                </div>
+              {showPagination ? (
+                <SliderPaginationDots
+                  count={slideCount}
+                  activeIndex={activeIndex}
+                  onSelect={goToSlide}
+                  className="riyasat-editors-pick__pagination"
+                  dotClassName="riyasat-editors-pick__dot"
+                  ariaLabelPrefix="Go to card"
+                />
               ) : null}
             </div>
           </div>

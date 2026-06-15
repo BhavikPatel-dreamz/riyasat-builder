@@ -16,6 +16,11 @@ import { registerInstaFeed } from "./insta-feed";
 import { registerClientStories } from "./client-stories";
 import { registerVisitOurStores } from "./visit-our-stores";
 import { registerShopTheLook } from "./shop-the-look";
+import { registerOccasion } from "./occasion";
+import { registerCategoriesScroller } from "./categories-scroller";
+import { registerHeroBannerSlider } from "./hero-banner-slider";
+import { registerOccasionCardsGrid } from "./occasion-cards-grid";
+import { registerReadyToShipBanner } from "./ready-to-ship-banner";
 
 let queued = false;
 
@@ -52,6 +57,11 @@ export function registerRiyasatBlocks() {
     registerClientStories();
     registerVisitOurStores();
     registerShopTheLook();
+    registerOccasion();
+    registerCategoriesScroller();
+    registerHeroBannerSlider();
+    registerOccasionCardsGrid();
+    registerReadyToShipBanner();
 
     // Disable every block that isn't a riyasat block — this runs after the kit
     // has registered all WP core blocks (paragraph, image, heading, … and the

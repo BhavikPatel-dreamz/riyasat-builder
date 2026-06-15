@@ -44,7 +44,6 @@ body {
   padding: 24px 0 40px;
   overflow: hidden !important;
 }
-
 /* The phone "screen" — fixed mobile width with a rounded device frame. */
 .cms-editor-shell .builder-wrapper .editor-canvas {
   width: 390px;
@@ -64,6 +63,12 @@ body {
 }
 .builder-wrapper .editor-canvas-wrapper .block-editor-block-list__layout {
   overflow-y: auto !important;
+}
+
+/* Hide canvas "+" appenders inside riyasat blocks — use Content sidebar instead. */
+.cms-editor-shell [class$="-editor"] .block-list-appender,
+.cms-editor-shell [class$="-editor"] .block-editor-button-block-appender {
+  display: none !important;
 }
 /* Mobile top app bar: hamburger + title + search / wishlist / cart icons. */
 .cms-editor-shell  .editor-canvas::before {

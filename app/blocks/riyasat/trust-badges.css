@@ -94,7 +94,7 @@
   border-top: 0;
   border-left: 0;
   border-right: 0;
-  border-bottom: 1px solid #3858e9;
+  border-bottom: 1px solid var(--riyasat-field-border);
   box-shadow: none;
   outline: none;
 }
@@ -117,7 +117,7 @@
 }
 
 .riyasat-trust-badges-editor .block-editor-button-block-appender:hover {
-  border-color: #3858e9;
+  border-color: var(--riyasat-field-border);
   background: #ffffff;
 }
 

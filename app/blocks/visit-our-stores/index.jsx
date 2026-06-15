@@ -2,8 +2,8 @@
 // Visit our stores — parent (core/visit-our-stores) + child store card
 // (core/visit-our-stores-item) using InnerBlocks. Authored against the kit's
 // shared @wordpress runtime; registered from ../index.ts.
-import { useState, useEffect } from 'gutenberg-block-kit/wp/element';
-import { registerBlockType } from 'gutenberg-block-kit/wp/blocks';
+import { useState } from 'gutenberg-block-kit/wp/element';
+import { registerBlockType, createBlock } from 'gutenberg-block-kit/wp/blocks';
 import {
   useBlockProps,
   InnerBlocks,
@@ -19,8 +19,8 @@ import {
   ToggleControl,
   Button,
 } from 'gutenberg-block-kit/wp/components';
-import { useSelect } from 'gutenberg-block-kit/wp/data';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
+import { contentTabStyle, ImagePicker, useChildBlocks, useSliderPagination, SliderPaginationDots } from '../inspector-shared';
 import {
   VISIT_OUR_STORES_BLOCK,
   VISIT_OUR_STORES_ITEM_BLOCK,
@@ -74,80 +74,34 @@ function registerVisitOurStoresItem() {
 
       return (
         <>
-          <InspectorControls>
-            <PanelBody title="Image" initialOpen={true}>
-              <MediaUploadCheck>
-                <MediaUpload
-                  onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
-                  allowedTypes={['image']}
-                  render={({ open }) => (
-                    <div>
-                      {imageUrl ? (
-                        <div
-                          onClick={open}
-                          style={{
-                            marginBottom: '8px',
-                            borderRadius: '6px',
-                            overflow: 'hidden',
-                            cursor: 'pointer',
-                            border: '1px solid #ddd',
-                          }}
-                        >
-                          <img
-                            src={imageUrl}
-                            alt=""
-                            style={{
-                              width: '100%',
-                              height: '80px',
-                              objectFit: 'cover',
-                              display: 'block',
-                            }}
-                          />
-                        </div>
-                      ) : null}
-                      <Button
-                        onClick={open}
-                        variant="secondary"
-                        style={{ width: '100%', justifyContent: 'center' }}
-                      >
-                        {imageUrl ? 'Change Image' : 'Add Image'}
-                      </Button>
-                      {imageUrl ? (
-                        <Button
-                          onClick={() => setAttributes({ imageUrl: '' })}
-                          variant="link"
-                          isDestructive
-                          style={{ marginTop: '4px' }}
-                        >
-                          Remove Image
-                        </Button>
-                      ) : null}
-                    </div>
-                  )}
+          <InspectorControls group="content">
+            <div style={contentTabStyle}>
+              <PanelBody title="Store" initialOpen={true}>
+                <ImagePicker
+                  imageUrl={imageUrl}
+                  onSelect={(url) => setAttributes({ imageUrl: url })}
+                  onClear={() => setAttributes({ imageUrl: '' })}
                 />
-              </MediaUploadCheck>
-            </PanelBody>
-
-            <PanelBody title="Store details" initialOpen={true}>
-              <TextControl
-                label="Store name"
-                value={storeName}
-                onChange={(value) => setAttributes({ storeName: value })}
-              />
-              <TextareaControl
-                label="Address"
-                value={address}
-                rows={3}
-                onChange={(value) => setAttributes({ address: value })}
-              />
-              <TextControl
-                label="Google Maps link"
-                type="url"
-                placeholder="https://maps.google.com/…"
-                value={mapLink}
-                onChange={(value) => setAttributes({ mapLink: value })}
-              />
-            </PanelBody>
+                <TextControl
+                  label="Store name"
+                  value={storeName}
+                  onChange={(value) => setAttributes({ storeName: value })}
+                />
+                <TextareaControl
+                  label="Address"
+                  value={address}
+                  rows={3}
+                  onChange={(value) => setAttributes({ address: value })}
+                />
+                <TextControl
+                  label="Google Maps link"
+                  type="url"
+                  placeholder="https://maps.google.com/…"
+                  value={mapLink}
+                  onChange={(value) => setAttributes({ mapLink: value })}
+                />
+              </PanelBody>
+            </div>
           </InspectorControls>
 
           <div {...blockProps}>
@@ -280,62 +234,118 @@ function registerVisitOurStoresParent() {
         className: 'riyasat-visit-our-stores-editor',
       });
       const [activeIndex, setActiveIndex] = useState(0);
-      const storeCount = useSelect(
-        (select) => select('core/block-editor').getBlockCount(clientId),
-        [clientId],
-      );
-
-      useEffect(() => {
-        if (storeCount <= 0) {
-          setActiveIndex(0);
-          return;
-        }
-        if (activeIndex > storeCount - 1) setActiveIndex(storeCount - 1);
-      }, [activeIndex, storeCount]);
+      const { childBlocks, childCount, insertBlock, removeBlock, updateBlockAttributes } =
+        useChildBlocks(clientId);
+      const { trackRef, slideCount, goToSlide } = useSliderPagination(clientId, activeIndex, setActiveIndex);
 
       return (
         <>
-          <InspectorControls>
-            <PanelBody title="Heading" initialOpen={true}>
-              <TextControl
-                label="Title"
-                value={title}
-                onChange={(value) => setAttributes({ title: value })}
-              />
-              <TextControl
-                label="Subtitle"
-                value={subTitle}
-                onChange={(value) => setAttributes({ subTitle: value })}
-              />
-            </PanelBody>
+          <InspectorControls group="content">
+            <div style={contentTabStyle}>
+              <PanelBody title="Heading" initialOpen={true}>
+                <TextControl
+                  label="Title"
+                  value={title}
+                  onChange={(value) => setAttributes({ title: value })}
+                />
+                <TextControl
+                  label="Subtitle"
+                  value={subTitle}
+                  onChange={(value) => setAttributes({ subTitle: value })}
+                />
+              </PanelBody>
+              {childBlocks.map((block, index) => {
+                const { imageUrl, storeName, address, mapLink } = block.attributes;
+                return (
+                  <PanelBody
+                    key={block.clientId}
+                    title={`Store ${index + 1}`}
+                    initialOpen={false}
+                  >
+                    <ImagePicker
+                      imageUrl={imageUrl}
+                      onSelect={(url) =>
+                        updateBlockAttributes(block.clientId, { imageUrl: url })
+                      }
+                      onClear={() => updateBlockAttributes(block.clientId, { imageUrl: '' })}
+                    />
+                    <TextControl
+                      label="Store name"
+                      value={storeName}
+                      onChange={(value) =>
+                        updateBlockAttributes(block.clientId, { storeName: value })
+                      }
+                    />
+                    <TextareaControl
+                      label="Address"
+                      value={address}
+                      rows={3}
+                      onChange={(value) =>
+                        updateBlockAttributes(block.clientId, { address: value })
+                      }
+                    />
+                    <TextControl
+                      label="Google Maps link"
+                      type="url"
+                      placeholder="https://maps.google.com/…"
+                      value={mapLink}
+                      onChange={(value) =>
+                        updateBlockAttributes(block.clientId, { mapLink: value })
+                      }
+                    />
+                    {childCount > 1 ? (
+                      <Button
+                        onClick={() => removeBlock(block.clientId)}
+                        variant="link"
+                        isDestructive
+                        style={{ marginTop: '8px' }}
+                      >
+                        Remove store
+                      </Button>
+                    ) : null}
+                  </PanelBody>
+                );
+              })}
+              <Button
+                variant="primary"
+                onClick={() =>
+                  insertBlock(
+                    createBlock(VISIT_OUR_STORES_ITEM_BLOCK, {}),
+                    childCount,
+                    clientId,
+                  )
+                }
+                style={{ width: '100%', justifyContent: 'center' }}
+              >
+                Add store
+              </Button>
+            </div>
+          </InspectorControls>
 
+          <InspectorControls>
             <PanelBody title="Settings" initialOpen={true}>
               <ToggleControl
                 label="Show pagination"
                 checked={showPagination}
                 onChange={(value) => setAttributes({ showPagination: value })}
               />
-            </PanelBody>
-
-            <PanelBody title="Section action" initialOpen={false}>
+              <PanelColorSettings
+                title="Colors"
+                colorSettings={[
+                  {
+                    label: 'Background color',
+                    value: backgroundColor,
+                    onChange: (value) =>
+                      setAttributes({ backgroundColor: value || DEFAULT_BACKGROUND }),
+                  },
+                ]}
+              />
               <ActionBuilder
-                label="Action"
+                label="Section action"
                 value={action}
                 onChange={(next) => setAttributes({ action: next })}
               />
             </PanelBody>
-
-            <PanelColorSettings
-              title="Colors"
-              colorSettings={[
-                {
-                  label: 'Background color',
-                  value: backgroundColor,
-                  onChange: (value) =>
-                    setAttributes({ backgroundColor: value || DEFAULT_BACKGROUND }),
-                },
-              ]}
-            />
           </InspectorControls>
 
           <div {...blockProps}>
@@ -354,7 +364,7 @@ function registerVisitOurStoresParent() {
                 </div>
               )}
 
-              <div className="riyasat-visit-our-stores__track">
+              <div className="riyasat-visit-our-stores__track" ref={trackRef}>
                 <InnerBlocks
                   allowedBlocks={[VISIT_OUR_STORES_ITEM_BLOCK]}
                   template={[
@@ -363,25 +373,20 @@ function registerVisitOurStoresParent() {
                     [VISIT_OUR_STORES_ITEM_BLOCK, {}],
                   ]}
                   templateLock={false}
-                  renderAppender={InnerBlocks.ButtonBlockAppender}
+                  renderAppender={false}
                   orientation="horizontal"
                 />
               </div>
 
-              {showPagination && storeCount > 1 ? (
-                <div className="riyasat-visit-our-stores__pagination">
-                  {Array.from({ length: storeCount }).map((_, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      className={`riyasat-visit-our-stores__dot${
-                        index === activeIndex ? ' is-active' : ''
-                      }`}
-                      aria-label={`Go to store ${index + 1}`}
-                      onClick={() => setActiveIndex(index)}
-                    />
-                  ))}
-                </div>
+              {showPagination ? (
+                <SliderPaginationDots
+                  count={slideCount}
+                  activeIndex={activeIndex}
+                  onSelect={goToSlide}
+                  className="riyasat-visit-our-stores__pagination"
+                  dotClassName="riyasat-visit-our-stores__dot"
+                  ariaLabelPrefix="Go to store"
+                />
               ) : null}
             </div>
           </div>

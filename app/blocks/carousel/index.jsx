@@ -3,8 +3,8 @@
 // (core/image-carousel-item) using InnerBlocks. Authored against the kit's
 // shared @wordpress runtime so registerBlockType() hits the editor's registry.
 // Called from ../index.ts inside registerBlocks().
-import { useState, useEffect } from 'gutenberg-block-kit/wp/element';
-import { registerBlockType } from 'gutenberg-block-kit/wp/blocks';
+import { useState } from 'gutenberg-block-kit/wp/element';
+import { registerBlockType, createBlock } from 'gutenberg-block-kit/wp/blocks';
 import {
   useBlockProps,
   InnerBlocks,
@@ -13,8 +13,14 @@ import {
   MediaUploadCheck,
 } from 'gutenberg-block-kit/wp/block-editor';
 import { PanelBody, ToggleControl, Button } from 'gutenberg-block-kit/wp/components';
-import { useSelect } from 'gutenberg-block-kit/wp/data';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
+import {
+  contentTabStyle,
+  ImagePicker,
+  useChildBlocks,
+  useCarouselPagination,
+  SliderPaginationDots,
+} from '../inspector-shared';
 import {
   IMAGE_CAROUSEL_BLOCK,
   IMAGE_CAROUSEL_ITEM_BLOCK,
@@ -60,89 +66,52 @@ function registerCarouselItem() {
     },
 
     edit: ({ attributes, setAttributes }) => {
-      const { imageUrl, action } = attributes;
+      const { imageUrl, action: rawAction } = attributes;
+      const action = rawAction ?? {};
       const blockProps = useBlockProps({
         className: 'riyasat-image-carousel-item-editor',
       });
 
       return (
         <>
-          <InspectorControls>
-            <PanelBody title="Image" initialOpen={true}>
+          <InspectorControls group="content">
+            <div style={contentTabStyle}>
+              <PanelBody title="Slide" initialOpen={true}>
+                <ImagePicker
+                  imageUrl={imageUrl}
+                  onSelect={(url) => setAttributes({ imageUrl: url })}
+                  onClear={() => setAttributes({ imageUrl: '' })}
+                />
+                <ActionBuilder
+                  label="Tap action"
+                  value={action}
+                  onChange={(next) => setAttributes({ action: next })}
+                />
+              </PanelBody>
+            </div>
+          </InspectorControls>
+
+          <div {...blockProps}>
+            {imageUrl ? (
               <MediaUploadCheck>
                 <MediaUpload
                   onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
                   allowedTypes={['image']}
                   render={({ open }) => (
-                    <div>
-                      {imageUrl ? (
-                        <div
-                          onClick={open}
-                          style={{
-                            marginBottom: '8px',
-                            borderRadius: '6px',
-                            overflow: 'hidden',
-                            cursor: 'pointer',
-                            border: '1px solid #ddd',
-                          }}
-                        >
-                          <img
-                            src={imageUrl}
-                            alt=""
-                            style={{
-                              width: '100%',
-                              height: '80px',
-                              objectFit: 'cover',
-                              display: 'block',
-                            }}
-                          />
-                        </div>
-                      ) : null}
-                      <Button
-                        onClick={open}
-                        variant="secondary"
-                        style={{ width: '100%', justifyContent: 'center' }}
-                      >
-                        {imageUrl ? 'Change Image' : 'Add Image'}
-                      </Button>
-                      {imageUrl ? (
-                        <Button
-                          onClick={() => setAttributes({ imageUrl: '' })}
-                          variant="link"
-                          isDestructive
-                          style={{ marginTop: '4px' }}
-                        >
-                          Remove Image
-                        </Button>
-                      ) : null}
-                    </div>
+                    <img
+                      src={imageUrl}
+                      alt=""
+                      className="riyasat-image-carousel-item-editor__image"
+                      onClick={open}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') open();
+                      }}
+                      role="button"
+                      tabIndex={0}
+                    />
                   )}
                 />
               </MediaUploadCheck>
-            </PanelBody>
-
-            <PanelBody title="Action" initialOpen={true}>
-              <ActionBuilder
-                label="Tap action"
-                value={action}
-                onChange={(next) => setAttributes({ action: next })}
-              />
-            </PanelBody>
-          </InspectorControls>
-
-          <div {...blockProps}>
-            {imageUrl ? (
-              <img
-                src={imageUrl}
-                alt=""
-                className="riyasat-image-carousel-item-editor__image"
-                style={{
-                  width: '100%',
-                  minHeight: '280px',
-                  objectFit: 'cover',
-                  display: 'block',
-                }}
-              />
             ) : (
               <MediaUploadCheck>
                 <MediaUpload
@@ -153,17 +122,6 @@ function registerCarouselItem() {
                       type="button"
                       className="riyasat-image-carousel-item-editor__placeholder"
                       onClick={open}
-                      style={{
-                        width: '100%',
-                        minHeight: '280px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        color: '#fff',
-                        background: '#2a2a4a',
-                        border: 'none',
-                      }}
                     >
                       Click to add slide image
                     </button>
@@ -212,41 +170,118 @@ function registerCarouselParent() {
       const { showPagination } = attributes;
       const blockProps = useBlockProps({ className: 'riyasat-image-carousel-editor' });
       const [activeIndex, setActiveIndex] = useState(0);
-      const { childClientIds, selectedBlockClientId } = useSelect(
-        (select) => {
-          const blockEditor = select('core/block-editor');
-          return {
-            childClientIds: blockEditor.getBlockOrder(clientId),
-            selectedBlockClientId: blockEditor.getSelectedBlockClientId(),
-          };
-        },
-        [clientId],
+      const { childBlocks, childCount, insertBlock, removeBlock, updateBlockAttributes } =
+        useChildBlocks(clientId);
+      const { slideCount, goToSlide } = useCarouselPagination(
+        clientId,
+        activeIndex,
+        setActiveIndex,
       );
-      const slideCount = childClientIds.length;
-
-      useEffect(() => {
-        if (slideCount <= 0) {
-          setActiveIndex(0);
-          return;
-        }
-        if (activeIndex > slideCount - 1) setActiveIndex(slideCount - 1);
-      }, [activeIndex, slideCount]);
-
-      useEffect(() => {
-        if (!selectedBlockClientId || !childClientIds.includes(selectedBlockClientId)) {
-          return;
-        }
-
-        const nextIndex = childClientIds.indexOf(selectedBlockClientId);
-        if (nextIndex >= 0) {
-          setActiveIndex(nextIndex);
-        }
-      }, [childClientIds, selectedBlockClientId]);
 
       return (
         <>
+          <InspectorControls group="content">
+            <div style={{ padding: '0 16px 16px' }}>
+              {childBlocks.map((block, index) => {
+                const { imageUrl, action } = block.attributes;
+                return (
+                  <PanelBody
+                    key={block.clientId}
+                    title={`Slide ${index + 1}`}
+                    initialOpen={false}
+                  >
+                    <MediaUploadCheck>
+                      <MediaUpload
+                        onSelect={(media) =>
+                          updateBlockAttributes(block.clientId, {
+                            imageUrl: media?.url ?? '',
+                          })
+                        }
+                        allowedTypes={['image']}
+                        render={({ open }) => (
+                          <div>
+                            {imageUrl ? (
+                              <div
+                                onClick={open}
+                                style={{
+                                  marginBottom: '8px',
+                                  borderRadius: '6px',
+                                  overflow: 'hidden',
+                                  cursor: 'pointer',
+                                  border: '1px solid #ddd',
+                                }}
+                              >
+                                <img
+                                  src={imageUrl}
+                                  alt=""
+                                  style={{
+                                    width: '100%',
+                                    height: '80px',
+                                    objectFit: 'cover',
+                                    display: 'block',
+                                  }}
+                                />
+                              </div>
+                            ) : null}
+                            <Button onClick={open} variant="secondary" style={{ width: '100%' }}>
+                              {imageUrl ? 'Change image' : 'Add image'}
+                            </Button>
+                            {imageUrl ? (
+                              <Button
+                                onClick={() =>
+                                  updateBlockAttributes(block.clientId, { imageUrl: '' })
+                                }
+                                variant="link"
+                                isDestructive
+                                style={{ marginTop: '4px' }}
+                              >
+                                Remove image
+                              </Button>
+                            ) : null}
+                          </div>
+                        )}
+                      />
+                    </MediaUploadCheck>
+                    <div style={{ marginTop: '12px' }}>
+                      <ActionBuilder
+                        label="Tap action"
+                        value={action}
+                        onChange={(next) =>
+                          updateBlockAttributes(block.clientId, { action: next })
+                        }
+                      />
+                    </div>
+                    {slideCount > 1 ? (
+                      <Button
+                        onClick={() => removeBlock(block.clientId)}
+                        variant="link"
+                        isDestructive
+                        style={{ marginTop: '8px' }}
+                      >
+                        Remove slide
+                      </Button>
+                    ) : null}
+                  </PanelBody>
+                );
+              })}
+              <Button
+                variant="primary"
+                onClick={() =>
+                  insertBlock(
+                    createBlock(IMAGE_CAROUSEL_ITEM_BLOCK, {}),
+                    slideCount,
+                    clientId,
+                  )
+                }
+                style={{ width: '100%', justifyContent: 'center' }}
+              >
+                Add slide
+              </Button>
+            </div>
+          </InspectorControls>
+
           <InspectorControls>
-            <PanelBody title="Carousel settings" initialOpen={true}>
+            <PanelBody title="Settings" initialOpen={true}>
               <ToggleControl
                 label="Show pagination"
                 checked={showPagination}
@@ -283,20 +318,15 @@ function registerCarouselParent() {
                 />
               </div>
 
-              {showPagination && slideCount > 1 ? (
-                <div
+              {showPagination ? (
+                <SliderPaginationDots
+                  count={slideCount}
+                  activeIndex={activeIndex}
+                  onSelect={goToSlide}
                   className="riyasat-image-carousel__pagination riyasat-image-carousel__pagination--preview"
-                  aria-hidden="true"
-                >
-                  {Array.from({ length: slideCount }).map((_, index) => (
-                    <span
-                      key={index}
-                      className={`riyasat-image-carousel__dot${
-                        index === activeIndex ? ' is-active' : ''
-                      }`}
-                    />
-                  ))}
-                </div>
+                  dotClassName="riyasat-image-carousel__dot"
+                  ariaLabelPrefix="Go to slide"
+                />
               ) : null}
             </div>
           </div>

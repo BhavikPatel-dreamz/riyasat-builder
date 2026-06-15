@@ -1,6 +1,4 @@
 .riyasat-visit-our-stores-editor {
-  border: 1px solid #ddd;
-  border-radius: 8px;
   overflow: visible;
 }
 
@@ -11,9 +9,8 @@
 .riyasat-visit-our-stores {
   --riyasat-visit-our-stores-slide-width: calc((100% - 20px) / 1.5);
   --riyasat-visit-our-stores-image-height: 300px;
-  --riyasat-visit-our-stores-accent: #b3024a;
-  padding: 20px 16px;
-  border-radius: 8px;
+  --riyasat-visit-our-stores-accent: var(--riyasat-accent);
+  padding: 40px 15px;
 }
 
 .riyasat-visit-our-stores__heading {
@@ -47,29 +44,8 @@
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x mandatory;
-  padding-bottom: 6px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--riyasat-visit-our-stores-accent) rgba(179, 2, 74, 0.2);
   /* 1 full slide + half of the next visible */
   --riyasat-visit-our-stores-slide-width: calc((100% - 20px) / 1.5);
-}
-
-.riyasat-visit-our-stores__track::-webkit-scrollbar {
-  height: 4px;
-}
-
-.riyasat-visit-our-stores__track::-webkit-scrollbar-track {
-  background: rgba(179, 2, 74, 0.2);
-  border-radius: 999px;
-}
-
-.riyasat-visit-our-stores__track::-webkit-scrollbar-thumb {
-  background: var(--riyasat-visit-our-stores-accent);
-  border-radius: 999px;
-}
-
-.riyasat-visit-our-stores__track::-webkit-scrollbar-thumb:hover {
-  background: #9a023f;
 }
 
 .riyasat-visit-our-stores-editor .riyasat-visit-our-stores__track .block-editor-inner-blocks {
@@ -206,37 +182,13 @@
 .riyasat-visit-our-stores-item-editor .components-text-control__input:focus,
 .riyasat-visit-our-stores-item-editor .components-textarea-control__input:focus {
   border: none !important;
-  border-bottom: 1px solid #3858e9 !important;
+  border-bottom: 1px solid var(--riyasat-field-border) !important;
   box-shadow: none !important;
   outline: none !important;
 }
 
 .riyasat-visit-our-stores-item-editor__field--address {
   min-height: 56px;
-}
-
-.riyasat-visit-our-stores__pagination {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  margin-top: 12px;
-}
-
-.riyasat-visit-our-stores__dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  background: rgba(179, 2, 74, 0.25);
-  transition: width 0.2s ease, background 0.2s ease;
-}
-
-.riyasat-visit-our-stores__dot.is-active {
-  width: 18px;
-  height: 6px;
-  background: var(--riyasat-visit-our-stores-accent);
 }
 
 /* Published page */

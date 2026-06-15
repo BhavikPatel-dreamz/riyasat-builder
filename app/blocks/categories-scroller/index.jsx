@@ -1,31 +1,34 @@
 // @ts-nocheck
-// Image slider — parent (core/image-slider) + child slide
-// (core/image-slider-item) using InnerBlocks. Authored against the kit's shared
-// @wordpress runtime. Registered from ../index.ts inside registerBlocks().
+// Categories Scroller — parent (core/categories-scroller) + child item
+// (core/categories-scroller-item) using InnerBlocks.
 import { useState } from 'gutenberg-block-kit/wp/element';
 import { registerBlockType, createBlock } from 'gutenberg-block-kit/wp/blocks';
 import {
   useBlockProps,
   InnerBlocks,
   InspectorControls,
+  PanelColorSettings,
   MediaUpload,
   MediaUploadCheck,
 } from 'gutenberg-block-kit/wp/block-editor';
-import {
-  PanelBody,
-  TextControl,
-  ToggleControl,
-  Button,
-} from 'gutenberg-block-kit/wp/components';
+import { PanelBody, TextControl, Button } from 'gutenberg-block-kit/wp/components';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
-import { contentTabStyle, ImagePicker, useChildBlocks, useSliderPagination, SliderPaginationDots } from '../inspector-shared';
 import {
-  IMAGE_SLIDER_BLOCK,
-  IMAGE_SLIDER_ITEM_BLOCK,
+  contentTabStyle,
+  ImagePicker,
+  useChildBlocks,
+  useSliderPagination,
+  SliderPaginationDots,
+} from '../inspector-shared';
+import {
+  CATEGORIES_SCROLLER_BLOCK,
+  CATEGORIES_SCROLLER_ITEM_BLOCK,
   RIYASAT_CATEGORY,
 } from '../constants';
 
-function ImageSliderIcon() {
+const DEFAULT_BACKGROUND = '#f5f5f5';
+
+function CategoriesScrollerIcon() {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -37,23 +40,23 @@ function ImageSliderIcon() {
     >
       <path
         fill="currentColor"
-        d="M3 6h4v12H3V6zm5 1h8v10H8V7zm9-1h4v12h-4V6z"
+        d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z"
       />
     </svg>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Child: core/image-slider-item — one slide (image + label + tap action)
+// Child: core/categories-scroller-item
 // ---------------------------------------------------------------------------
-function registerImageSliderItem() {
-  registerBlockType(IMAGE_SLIDER_ITEM_BLOCK, {
+function registerCategoriesScrollerItem() {
+  registerBlockType(CATEGORIES_SCROLLER_ITEM_BLOCK, {
     apiVersion: 3,
-    title: 'Slider Item',
-    description: 'A single slide: image, label and optional tap action.',
+    title: 'Category Item',
+    description: 'A category tile with image, label and optional tap action.',
     category: RIYASAT_CATEGORY,
-    parent: [IMAGE_SLIDER_BLOCK],
-    icon: 'format-image',
+    parent: [CATEGORIES_SCROLLER_BLOCK],
+    icon: 'category',
     supports: { html: false, reusable: false },
     attributes: {
       imageUrl: { type: 'string', default: '' },
@@ -62,16 +65,17 @@ function registerImageSliderItem() {
     },
 
     edit: ({ attributes, setAttributes }) => {
-      const { imageUrl, label, action } = attributes;
+      const { imageUrl, label, action: rawAction } = attributes;
+      const action = rawAction ?? {};
       const blockProps = useBlockProps({
-        className: 'riyasat-image-slider-item-editor',
+        className: 'riyasat-categories-scroller-item-editor',
       });
 
       return (
         <>
           <InspectorControls group="content">
             <div style={contentTabStyle}>
-              <PanelBody title="Slide" initialOpen={true}>
+              <PanelBody title="Category" initialOpen={true}>
                 <ImagePicker
                   imageUrl={imageUrl}
                   onSelect={(url) => setAttributes({ imageUrl: url })}
@@ -101,7 +105,7 @@ function registerImageSliderItem() {
                     <img
                       src={imageUrl}
                       alt=""
-                      className="riyasat-image-slider-item-editor__image"
+                      className="riyasat-categories-scroller-item-editor__image"
                       onClick={open}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter' || event.key === ' ') open();
@@ -120,7 +124,7 @@ function registerImageSliderItem() {
                   render={({ open }) => (
                     <button
                       type="button"
-                      className="riyasat-image-slider-item-editor__image-btn"
+                      className="riyasat-categories-scroller-item-editor__image-btn"
                       onClick={open}
                     >
                       Add image
@@ -131,7 +135,7 @@ function registerImageSliderItem() {
             )}
             <input
               type="text"
-              className="riyasat-image-slider-item-editor__label"
+              className="riyasat-categories-scroller-item-editor__label"
               value={label}
               placeholder="Label…"
               onChange={(event) => setAttributes({ label: event.target.value })}
@@ -144,16 +148,20 @@ function registerImageSliderItem() {
     save: ({ attributes }) => {
       const { imageUrl, label, action } = attributes;
       const blockProps = useBlockProps.save({
-        className: 'riyasat-image-slider__slide',
+        className: 'riyasat-categories-scroller__item',
         'data-action': JSON.stringify(action ?? {}),
       });
       return (
         <div {...blockProps}>
           {imageUrl ? (
-            <img src={imageUrl} alt="" className="riyasat-image-slider__image" />
+            <img
+              src={imageUrl}
+              alt=""
+              className="riyasat-categories-scroller__image"
+            />
           ) : null}
           {label ? (
-            <span className="riyasat-image-slider__label">{label}</span>
+            <span className="riyasat-categories-scroller__label">{label}</span>
           ) : null}
         </div>
       );
@@ -162,53 +170,44 @@ function registerImageSliderItem() {
 }
 
 // ---------------------------------------------------------------------------
-// Parent: core/image-slider — title/subtitle + horizontal slides
+// Parent: core/categories-scroller
 // ---------------------------------------------------------------------------
-function registerImageSliderParent() {
-  registerBlockType(IMAGE_SLIDER_BLOCK, {
+function registerCategoriesScrollerParent() {
+  registerBlockType(CATEGORIES_SCROLLER_BLOCK, {
     apiVersion: 3,
-    title: 'Image Slider',
-    description: 'A titled, horizontally scrolling row of image slides.',
+    title: 'Categories Scroller',
+    description: 'Horizontally scrolling category tiles with image and label.',
     category: RIYASAT_CATEGORY,
-    icon: ImageSliderIcon,
-    keywords: ['slider', 'scroller', 'images', 'products'],
+    icon: CategoriesScrollerIcon,
+    keywords: ['categories', 'scroller', 'shop', 'collection'],
     supports: { html: false, align: ['wide', 'full'] },
     attributes: {
-      title: { type: 'string', default: '' },
-      subTitle: { type: 'string', default: '' },
-      showPagination: { type: 'boolean', default: true },
+      backgroundColor: { type: 'string', default: DEFAULT_BACKGROUND },
+      action: { type: 'object', default: {} },
     },
 
     edit: ({ attributes, setAttributes, clientId }) => {
-      const { title, subTitle, showPagination } = attributes;
-      const blockProps = useBlockProps({ className: 'riyasat-image-slider-editor' });
+      const { backgroundColor, action } = attributes;
+      const blockProps = useBlockProps({ className: 'riyasat-categories-scroller-editor' });
       const [activeIndex, setActiveIndex] = useState(0);
       const { childBlocks, childCount, insertBlock, removeBlock, updateBlockAttributes } =
         useChildBlocks(clientId);
-      const { trackRef, slideCount, goToSlide } = useSliderPagination(clientId, activeIndex, setActiveIndex);
+      const { trackRef, slideCount, goToSlide } = useSliderPagination(
+        clientId,
+        activeIndex,
+        setActiveIndex,
+      );
 
       return (
         <>
           <InspectorControls group="content">
             <div style={contentTabStyle}>
-              <PanelBody title="Heading" initialOpen={true}>
-                <TextControl
-                  label="Title"
-                  value={title}
-                  onChange={(value) => setAttributes({ title: value })}
-                />
-                <TextControl
-                  label="Subtitle"
-                  value={subTitle}
-                  onChange={(value) => setAttributes({ subTitle: value })}
-                />
-              </PanelBody>
               {childBlocks.map((block, index) => {
-                const { imageUrl, label, action } = block.attributes;
+                const { imageUrl, label, action: itemAction } = block.attributes;
                 return (
                   <PanelBody
                     key={block.clientId}
-                    title={`Slide ${index + 1}`}
+                    title={`Category ${index + 1}${label ? `: ${label}` : ''}`}
                     initialOpen={false}
                   >
                     <ImagePicker
@@ -227,7 +226,7 @@ function registerImageSliderParent() {
                     />
                     <ActionBuilder
                       label="Tap action"
-                      value={action}
+                      value={itemAction ?? {}}
                       onChange={(next) =>
                         updateBlockAttributes(block.clientId, { action: next })
                       }
@@ -239,7 +238,7 @@ function registerImageSliderParent() {
                         isDestructive
                         style={{ marginTop: '8px' }}
                       >
-                        Remove slide
+                        Remove category
                       </Button>
                     ) : null}
                   </PanelBody>
@@ -248,44 +247,51 @@ function registerImageSliderParent() {
               <Button
                 variant="primary"
                 onClick={() =>
-                  insertBlock(createBlock(IMAGE_SLIDER_ITEM_BLOCK, {}), childCount, clientId)
+                  insertBlock(
+                    createBlock(CATEGORIES_SCROLLER_ITEM_BLOCK, {}),
+                    childCount,
+                    clientId,
+                  )
                 }
                 style={{ width: '100%', justifyContent: 'center' }}
               >
-                Add slide
+                Add category
               </Button>
             </div>
           </InspectorControls>
 
           <InspectorControls>
             <PanelBody title="Settings" initialOpen={true}>
-              <ToggleControl
-                label="Show pagination"
-                checked={showPagination}
-                onChange={(value) => setAttributes({ showPagination: value })}
+              <PanelColorSettings
+                title="Colors"
+                colorSettings={[
+                  {
+                    label: 'Background color',
+                    value: backgroundColor,
+                    onChange: (value) =>
+                      setAttributes({ backgroundColor: value || DEFAULT_BACKGROUND }),
+                  },
+                ]}
+              />
+              <ActionBuilder
+                label="Section action"
+                value={action ?? {}}
+                onChange={(next) => setAttributes({ action: next })}
               />
             </PanelBody>
           </InspectorControls>
 
           <div {...blockProps}>
-            <div className="riyasat-image-slider">
-              {(title || subTitle) && (
-                <div className="riyasat-image-slider__heading">
-                  {title ? (
-                    <h3 className="riyasat-image-slider__title">{title}</h3>
-                  ) : null}
-                  {subTitle ? (
-                    <p className="riyasat-image-slider__subtitle">{subTitle}</p>
-                  ) : null}
-                </div>
-              )}
-
-              <div className="riyasat-image-slider__track" ref={trackRef}>
+            <div
+              className="riyasat-categories-scroller"
+              style={{ background: backgroundColor }}
+            >
+              <div className="riyasat-categories-scroller__track" ref={trackRef}>
                 <InnerBlocks
-                  allowedBlocks={[IMAGE_SLIDER_ITEM_BLOCK]}
+                  allowedBlocks={[CATEGORIES_SCROLLER_ITEM_BLOCK]}
                   template={[
-                    [IMAGE_SLIDER_ITEM_BLOCK, {}],
-                    [IMAGE_SLIDER_ITEM_BLOCK, {}],
+                    [CATEGORIES_SCROLLER_ITEM_BLOCK, {}],
+                    [CATEGORIES_SCROLLER_ITEM_BLOCK, {}],
                   ]}
                   templateLock={false}
                   renderAppender={false}
@@ -293,16 +299,14 @@ function registerImageSliderParent() {
                 />
               </div>
 
-              {showPagination ? (
-                <SliderPaginationDots
-                  count={slideCount}
-                  activeIndex={activeIndex}
-                  onSelect={goToSlide}
-                  className="riyasat-image-slider__pagination"
-                  dotClassName="riyasat-image-slider__dot"
-                  ariaLabelPrefix="Go to slide"
-                />
-              ) : null}
+              <SliderPaginationDots
+                count={slideCount}
+                activeIndex={activeIndex}
+                onSelect={goToSlide}
+                className="riyasat-categories-scroller__pagination"
+                dotClassName="riyasat-categories-scroller__dot"
+                ariaLabelPrefix="Go to category"
+              />
             </div>
           </div>
         </>
@@ -310,43 +314,25 @@ function registerImageSliderParent() {
     },
 
     save: ({ attributes }) => {
-      const { title, subTitle, showPagination } = attributes;
+      const { backgroundColor, action } = attributes;
       const blockProps = useBlockProps.save({
-        className: 'riyasat-image-slider',
-        'data-show-pagination': showPagination ? 'true' : 'false',
+        className: 'riyasat-categories-scroller',
+        'data-background-color': backgroundColor,
+        'data-action': JSON.stringify(action ?? {}),
+        style: { background: backgroundColor },
       });
       return (
         <div {...blockProps}>
-          {(title || subTitle) && (
-            <div className="riyasat-image-slider__heading">
-              {title ? (
-                <h3 className="riyasat-image-slider__title">{title}</h3>
-              ) : null}
-              {subTitle ? (
-                <p className="riyasat-image-slider__subtitle">{subTitle}</p>
-              ) : null}
-            </div>
-          )}
-          <div className="riyasat-image-slider__track">
+          <div className="riyasat-categories-scroller__track">
             <InnerBlocks.Content />
           </div>
-          {showPagination ? (
-            <div
-              className="riyasat-image-slider__pagination"
-              aria-hidden="true"
-            />
-          ) : null}
         </div>
       );
     },
   });
 }
 
-/**
- * Register the image-slider parent + slide child. Child registers first so the
- * parent's InnerBlocks template can reference it.
- */
-export function registerImageSlider() {
-  registerImageSliderItem();
-  registerImageSliderParent();
+export function registerCategoriesScroller() {
+  registerCategoriesScrollerItem();
+  registerCategoriesScrollerParent();
 }

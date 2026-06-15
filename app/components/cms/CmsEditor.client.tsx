@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import "gutenberg-block-kit/styles";
+import "../../blocks/riyasat/shared-ui.css";
 import "../../blocks/riyasat/image-carousel.css";
 import "../../blocks/riyasat/trust-badges.css";
 import "../../blocks/riyasat/image-slider.css";
@@ -10,6 +11,11 @@ import "../../blocks/riyasat/editors-pick.css";
 import "../../blocks/riyasat/client-stories.css";
 import "../../blocks/riyasat/visit-our-stores.css";
 import "../../blocks/riyasat/insta-feed.css";
+import "../../blocks/riyasat/occasion.css";
+import "../../blocks/riyasat/categories-scroller.css";
+import "../../blocks/riyasat/hero-banner-slider.css";
+import "../../blocks/riyasat/occasion-cards-grid.css";
+import "../../blocks/riyasat/ready-to-ship-banner.css";
 import { BlockEditor } from "gutenberg-block-kit/editor";
 
 type CmsEditorProps = {

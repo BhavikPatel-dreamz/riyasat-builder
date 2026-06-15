@@ -2,7 +2,7 @@
 // Insta Feed — parent (core/insta-feed) + child image tile
 // (core/insta-feed-item) using InnerBlocks. Authored against the kit's shared
 // @wordpress runtime; registered from ../index.ts.
-import { registerBlockType } from 'gutenberg-block-kit/wp/blocks';
+import { registerBlockType, createBlock } from 'gutenberg-block-kit/wp/blocks';
 import {
   useBlockProps,
   InnerBlocks,
@@ -17,6 +17,7 @@ import {
   Button,
 } from 'gutenberg-block-kit/wp/components';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
+import { contentTabStyle, ImagePicker, useChildBlocks } from '../inspector-shared';
 import {
   INSTA_FEED_BLOCK,
   INSTA_FEED_ITEM_BLOCK,
@@ -76,67 +77,21 @@ function registerInstaFeedItem() {
 
       return (
         <>
-          <InspectorControls>
-            <PanelBody title="Image" initialOpen={true}>
-              <MediaUploadCheck>
-                <MediaUpload
-                  onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
-                  allowedTypes={['image']}
-                  render={({ open }) => (
-                    <div>
-                      {imageUrl ? (
-                        <div
-                          onClick={open}
-                          style={{
-                            marginBottom: '8px',
-                            borderRadius: '6px',
-                            overflow: 'hidden',
-                            cursor: 'pointer',
-                            border: '1px solid #ddd',
-                          }}
-                        >
-                          <img
-                            src={imageUrl}
-                            alt=""
-                            style={{
-                              width: '100%',
-                              height: '80px',
-                              objectFit: 'cover',
-                              display: 'block',
-                            }}
-                          />
-                        </div>
-                      ) : null}
-                      <Button
-                        onClick={open}
-                        variant="secondary"
-                        style={{ width: '100%', justifyContent: 'center' }}
-                      >
-                        {imageUrl ? 'Change Image' : 'Add Image'}
-                      </Button>
-                      {imageUrl ? (
-                        <Button
-                          onClick={() => setAttributes({ imageUrl: '' })}
-                          variant="link"
-                          isDestructive
-                          style={{ marginTop: '4px' }}
-                        >
-                          Remove Image
-                        </Button>
-                      ) : null}
-                    </div>
-                  )}
+          <InspectorControls group="content">
+            <div style={contentTabStyle}>
+              <PanelBody title="Tile" initialOpen={true}>
+                <ImagePicker
+                  imageUrl={imageUrl}
+                  onSelect={(url) => setAttributes({ imageUrl: url })}
+                  onClear={() => setAttributes({ imageUrl: '' })}
                 />
-              </MediaUploadCheck>
-            </PanelBody>
-
-            <PanelBody title="Action" initialOpen={true}>
-              <ActionBuilder
-                label="Tap action"
-                value={action}
-                onChange={(next) => setAttributes({ action: next })}
-              />
-            </PanelBody>
+                <ActionBuilder
+                  label="Tap action"
+                  value={action}
+                  onChange={(next) => setAttributes({ action: next })}
+                />
+              </PanelBody>
+            </div>
           </InspectorControls>
 
           <div {...blockProps}>
@@ -219,45 +174,94 @@ function registerInstaFeedParent() {
       action: { type: 'object', default: {} },
     },
 
-    edit: ({ attributes, setAttributes }) => {
+    edit: ({ attributes, setAttributes, clientId }) => {
       const { title, subTitle, backgroundColor, action } = attributes;
       const blockProps = useBlockProps({ className: 'riyasat-insta-feed-editor' });
+      const { childBlocks, childCount, insertBlock, removeBlock, updateBlockAttributes } =
+        useChildBlocks(clientId);
 
       return (
         <>
-          <InspectorControls>
-            <PanelBody title="Heading" initialOpen={true}>
-              <TextControl
-                label="Title"
-                value={title}
-                onChange={(value) => setAttributes({ title: value })}
-              />
-              <TextControl
-                label="Subtitle"
-                value={subTitle}
-                onChange={(value) => setAttributes({ subTitle: value })}
-              />
-            </PanelBody>
+          <InspectorControls group="content">
+            <div style={contentTabStyle}>
+              <PanelBody title="Heading" initialOpen={true}>
+                <TextControl
+                  label="Title"
+                  value={title}
+                  onChange={(value) => setAttributes({ title: value })}
+                />
+                <TextControl
+                  label="Subtitle"
+                  value={subTitle}
+                  onChange={(value) => setAttributes({ subTitle: value })}
+                />
+              </PanelBody>
+              {childBlocks.map((block, index) => {
+                const { imageUrl, action: tileAction } = block.attributes;
+                return (
+                  <PanelBody
+                    key={block.clientId}
+                    title={`Tile ${index + 1}`}
+                    initialOpen={false}
+                  >
+                    <ImagePicker
+                      imageUrl={imageUrl}
+                      onSelect={(url) =>
+                        updateBlockAttributes(block.clientId, { imageUrl: url })
+                      }
+                      onClear={() => updateBlockAttributes(block.clientId, { imageUrl: '' })}
+                    />
+                    <ActionBuilder
+                      label="Tap action"
+                      value={tileAction}
+                      onChange={(next) =>
+                        updateBlockAttributes(block.clientId, { action: next })
+                      }
+                    />
+                    {childCount > 1 ? (
+                      <Button
+                        onClick={() => removeBlock(block.clientId)}
+                        variant="link"
+                        isDestructive
+                        style={{ marginTop: '8px' }}
+                      >
+                        Remove tile
+                      </Button>
+                    ) : null}
+                  </PanelBody>
+                );
+              })}
+              <Button
+                variant="primary"
+                onClick={() =>
+                  insertBlock(createBlock(INSTA_FEED_ITEM_BLOCK, {}), childCount, clientId)
+                }
+                style={{ width: '100%', justifyContent: 'center' }}
+              >
+                Add tile
+              </Button>
+            </div>
+          </InspectorControls>
 
-            <PanelBody title="Section action" initialOpen={false}>
+          <InspectorControls>
+            <PanelBody title="Settings" initialOpen={true}>
+              <PanelColorSettings
+                title="Colors"
+                colorSettings={[
+                  {
+                    label: 'Background color',
+                    value: backgroundColor,
+                    onChange: (value) =>
+                      setAttributes({ backgroundColor: value || DEFAULT_BACKGROUND }),
+                  },
+                ]}
+              />
               <ActionBuilder
-                label="Action"
+                label="Section action"
                 value={action}
                 onChange={(next) => setAttributes({ action: next })}
               />
             </PanelBody>
-
-            <PanelColorSettings
-              title="Colors"
-              colorSettings={[
-                {
-                  label: 'Background color',
-                  value: backgroundColor,
-                  onChange: (value) =>
-                    setAttributes({ backgroundColor: value || DEFAULT_BACKGROUND }),
-                },
-              ]}
-            />
           </InspectorControls>
 
           <div {...blockProps}>
@@ -286,7 +290,7 @@ function registerInstaFeedParent() {
                     [INSTA_FEED_ITEM_BLOCK, {}],
                   ]}
                   templateLock={false}
-                  renderAppender={InnerBlocks.ButtonBlockAppender}
+                  renderAppender={false}
                 />
               </div>
             </div>

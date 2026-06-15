@@ -17,6 +17,7 @@ import {
   Button,
 } from 'gutenberg-block-kit/wp/components';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
+import { contentTabStyle } from '../inspector-shared';
 import { FREE_CONSULTATION_BLOCK, RIYASAT_CATEGORY } from '../constants';
 
 const DEFAULT_BACKGROUND = '#f5f5f5';
@@ -124,92 +125,98 @@ export function registerFreeConsultation() {
 
       return (
         <>
-          <InspectorControls>
-            <PanelBody title="Heading" initialOpen={true}>
-              <TextControl
-                label="Title"
-                value={title}
-                onChange={(value) => setAttributes({ title: value })}
-              />
-              <TextControl
-                label="Subtitle"
-                value={subTitle}
-                onChange={(value) => setAttributes({ subTitle: value })}
-              />
-              <TextareaControl
-                label="Description"
-                value={description}
-                rows={4}
-                onChange={(value) => setAttributes({ description: value })}
-              />
-            </PanelBody>
-
-            <PanelBody title="Media (image or video)" initialOpen={true}>
-              <MediaUploadCheck>
-                <MediaUpload
-                  onSelect={onSelectMedia}
-                  allowedTypes={['image', 'video']}
-                  render={({ open }) => (
-                    <div>
-                      <Button
-                        onClick={open}
-                        variant="secondary"
-                        style={{ width: '100%', justifyContent: 'center' }}
-                      >
-                        {hasMedia ? 'Change Media' : 'Add Media'}
-                      </Button>
-                      {hasMedia ? (
-                        <>
-                          <p
-                            style={{
-                              margin: '6px 0 0',
-                              fontSize: '12px',
-                              color: '#666',
-                              wordBreak: 'break-all',
-                            }}
-                          >
-                            {media.type || 'media'}
-                          </p>
-                          <Button
-                            onClick={() => setAttributes({ media: {} })}
-                            variant="link"
-                            isDestructive
-                            style={{ marginTop: '4px' }}
-                          >
-                            Remove Media
-                          </Button>
-                        </>
-                      ) : null}
-                    </div>
-                  )}
+          <InspectorControls group="content">
+            <div style={contentTabStyle}>
+              <PanelBody title="Heading" initialOpen={true}>
+                <TextControl
+                  label="Title"
+                  value={title}
+                  onChange={(value) => setAttributes({ title: value })}
                 />
-              </MediaUploadCheck>
-            </PanelBody>
+                <TextControl
+                  label="Subtitle"
+                  value={subTitle}
+                  onChange={(value) => setAttributes({ subTitle: value })}
+                />
+                <TextareaControl
+                  label="Description"
+                  value={description}
+                  rows={4}
+                  onChange={(value) => setAttributes({ description: value })}
+                />
+              </PanelBody>
 
-            <PanelBody title="Button" initialOpen={false}>
-              <TextControl
-                label="Button text"
-                value={buttonText}
-                onChange={(value) => setAttributes({ buttonText: value })}
-              />
-              <ActionBuilder
-                label="Button action"
-                value={action}
-                onChange={(next) => setAttributes({ action: next })}
+              <PanelBody title="Media (image or video)" initialOpen={true}>
+                <MediaUploadCheck>
+                  <MediaUpload
+                    onSelect={onSelectMedia}
+                    allowedTypes={['image', 'video']}
+                    render={({ open }) => (
+                      <div>
+                        <Button
+                          onClick={open}
+                          variant="secondary"
+                          style={{ width: '100%', justifyContent: 'center' }}
+                        >
+                          {hasMedia ? 'Change Media' : 'Add Media'}
+                        </Button>
+                        {hasMedia ? (
+                          <>
+                            <p
+                              style={{
+                                margin: '6px 0 0',
+                                fontSize: '12px',
+                                color: '#666',
+                                wordBreak: 'break-all',
+                              }}
+                            >
+                              {media.type || 'media'}
+                            </p>
+                            <Button
+                              onClick={() => setAttributes({ media: {} })}
+                              variant="link"
+                              isDestructive
+                              style={{ marginTop: '4px' }}
+                            >
+                              Remove Media
+                            </Button>
+                          </>
+                        ) : null}
+                      </div>
+                    )}
+                  />
+                </MediaUploadCheck>
+              </PanelBody>
+
+              <PanelBody title="Button" initialOpen={false}>
+                <TextControl
+                  label="Button text"
+                  value={buttonText}
+                  onChange={(value) => setAttributes({ buttonText: value })}
+                />
+                <ActionBuilder
+                  label="Button action"
+                  value={action}
+                  onChange={(next) => setAttributes({ action: next })}
+                />
+              </PanelBody>
+            </div>
+          </InspectorControls>
+
+          <InspectorControls>
+            <PanelBody title="Settings" initialOpen={true}>
+              <PanelColorSettings
+                title="Colors"
+                colorSettings={[
+                  {
+                    label: 'Background color',
+                    value: backgroundColor,
+                    onChange: (value) =>
+                      setAttributes({ backgroundColor: value || DEFAULT_BACKGROUND }),
+                  },
+                ]}
               />
             </PanelBody>
-
-            <PanelColorSettings
-              title="Colors"
-              colorSettings={[
-                {
-                  label: 'Background color',
-                  value: backgroundColor,
-                  onChange: (value) =>
-                    setAttributes({ backgroundColor: value || DEFAULT_BACKGROUND }),
-                },
-              ]}
-            />
           </InspectorControls>
 
           <div {...blockProps}>

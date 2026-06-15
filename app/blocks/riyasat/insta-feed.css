@@ -1,14 +1,11 @@
 .riyasat-insta-feed-editor {
-  border: 1px solid #ddd;
-  border-radius: 8px;
   overflow: hidden;
 }
 
 .riyasat-insta-feed {
   --riyasat-insta-feed-gap: 8px;
-  --riyasat-insta-feed-accent: #b3024a;
-  padding: 24px 16px;
-  border-radius: 8px;
+  --riyasat-insta-feed-accent: var(--riyasat-accent);
+  padding: 40px 15px;
 }
 
 .riyasat-insta-feed__heading {

@@ -11,6 +11,7 @@ import {
 } from 'gutenberg-block-kit/wp/block-editor';
 import { useState, useEffect } from 'gutenberg-block-kit/wp/element';
 import { PanelBody, TextControl, ToggleControl, Button } from 'gutenberg-block-kit/wp/components';
+import { contentTabStyle, useTrackPagination, SliderPaginationDots } from '../inspector-shared';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
 import { PRODUCT_SCROLLER_BLOCK, RIYASAT_CATEGORY } from '../constants';
 
@@ -52,25 +53,6 @@ function ProductScrollerProductCards({ products }) {
       </div>
     </div>
   ));
-}
-
-function ProductScrollerPagination({ itemCount = PLACEHOLDER_COUNT }) {
-  const dotCount = Math.min(5, Math.max(3, Math.ceil(itemCount / 2)));
-
-  return (
-    <div className="riyasat-product-scroller__pagination" aria-hidden="true">
-      {Array.from({ length: dotCount }).map((_, index) => (
-        <span
-          key={index}
-          className={`riyasat-product-scroller__pagination-dot${
-            index === 0
-              ? ' riyasat-product-scroller__pagination-dot--active'
-              : ' riyasat-product-scroller__pagination-dot--inactive'
-          }`}
-        />
-      ))}
-    </div>
-  );
 }
 
 const DEFAULT_BACKGROUND = '#f5f5f5';
@@ -190,88 +172,101 @@ export function registerProductScroller() {
 
       const showRealProducts = hasCollection && !productsLoading && products.length > 0;
       const visibleItemCount = showRealProducts ? products.length : PLACEHOLDER_COUNT;
+      const [activeIndex, setActiveIndex] = useState(0);
+      const { trackRef, goToIndex } = useTrackPagination(activeIndex, setActiveIndex);
+
+      useEffect(() => {
+        if (visibleItemCount <= 0) {
+          setActiveIndex(0);
+          return;
+        }
+        if (activeIndex > visibleItemCount - 1) setActiveIndex(visibleItemCount - 1);
+      }, [activeIndex, visibleItemCount]);
 
       return (
         <>
-          <InspectorControls>
-            <PanelBody title="Heading" initialOpen={true}>
-              <TextControl
-                label="Title"
-                value={title}
-                onChange={(value) => setAttributes({ title: value })}
-              />
-              <TextControl
-                label="Subtitle"
-                value={subTitle}
-                onChange={(value) => setAttributes({ subTitle: value })}
-              />
-            </PanelBody>
+          <InspectorControls group="content">
+            <div style={contentTabStyle}>
+              <PanelBody title="Heading" initialOpen={true}>
+                <TextControl
+                  label="Title"
+                  value={title}
+                  onChange={(value) => setAttributes({ title: value })}
+                />
+                <TextControl
+                  label="Subtitle"
+                  value={subTitle}
+                  onChange={(value) => setAttributes({ subTitle: value })}
+                />
+              </PanelBody>
 
-            <PanelBody title="Collection" initialOpen={true}>
-              {hasCollection ? (
-                <p style={{ margin: '0 0 8px' }}>
-                  Selected: <strong>{collection.title}</strong>
-                  <br />
-                  <span style={{ color: '#666', fontSize: '12px' }}>
-                    {collection.handle}
-                  </span>
-                </p>
-              ) : (
-                <p style={{ margin: '0 0 8px', color: '#666' }}>
-                  No collection selected.
-                </p>
-              )}
-              <Button
-                variant="secondary"
-                onClick={onPickCollection}
-                style={{ width: '100%', justifyContent: 'center' }}
-              >
-                {hasCollection ? 'Change Collection' : 'Select Collection'}
-              </Button>
-              {hasCollection ? (
+              <PanelBody title="Collection" initialOpen={true}>
+                {hasCollection ? (
+                  <p style={{ margin: '0 0 8px' }}>
+                    Selected: <strong>{collection.title}</strong>
+                    <br />
+                    <span style={{ color: '#666', fontSize: '12px' }}>
+                      {collection.handle}
+                    </span>
+                  </p>
+                ) : (
+                  <p style={{ margin: '0 0 8px', color: '#666' }}>
+                    No collection selected.
+                  </p>
+                )}
                 <Button
-                  variant="link"
-                  isDestructive
-                  onClick={() => setAttributes({ collection: {} })}
-                  style={{ marginTop: '4px' }}
+                  variant="secondary"
+                  onClick={onPickCollection}
+                  style={{ width: '100%', justifyContent: 'center' }}
                 >
-                  Clear Collection
+                  {hasCollection ? 'Change Collection' : 'Select Collection'}
                 </Button>
-              ) : null}
-            </PanelBody>
+                {hasCollection ? (
+                  <Button
+                    variant="link"
+                    isDestructive
+                    onClick={() => setAttributes({ collection: {} })}
+                    style={{ marginTop: '4px' }}
+                  >
+                    Clear Collection
+                  </Button>
+                ) : null}
+              </PanelBody>
 
+              <PanelBody title="Button" initialOpen={false}>
+                <TextControl
+                  label="Button text"
+                  value={buttonText}
+                  onChange={(value) => setAttributes({ buttonText: value })}
+                />
+                <ActionBuilder
+                  label="Button action"
+                  value={action}
+                  onChange={(next) => setAttributes({ action: next })}
+                />
+              </PanelBody>
+            </div>
+          </InspectorControls>
+
+          <InspectorControls>
             <PanelBody title="Settings" initialOpen={true}>
               <ToggleControl
                 label="Show pagination"
                 checked={showPagination}
                 onChange={(value) => setAttributes({ showPagination: value })}
               />
-            </PanelBody>
-
-            <PanelBody title="Button" initialOpen={false}>
-              <TextControl
-                label="Button text"
-                value={buttonText}
-                onChange={(value) => setAttributes({ buttonText: value })}
-              />
-              <ActionBuilder
-                label="Button action"
-                value={action}
-                onChange={(next) => setAttributes({ action: next })}
+              <PanelColorSettings
+                title="Colors"
+                colorSettings={[
+                  {
+                    label: 'Background color',
+                    value: backgroundColor,
+                    onChange: (value) =>
+                      setAttributes({ backgroundColor: value || DEFAULT_BACKGROUND }),
+                  },
+                ]}
               />
             </PanelBody>
-
-            <PanelColorSettings
-              title="Colors"
-              colorSettings={[
-                {
-                  label: 'Background color',
-                  value: backgroundColor,
-                  onChange: (value) =>
-                    setAttributes({ backgroundColor: value || DEFAULT_BACKGROUND }),
-                },
-              ]}
-            />
           </InspectorControls>
 
           <div {...blockProps}>
@@ -288,7 +283,7 @@ export function registerProductScroller() {
                 ) : null}
               </div>
 
-              <div className="riyasat-product-scroller__track">
+              <div className="riyasat-product-scroller__track" ref={trackRef}>
                 {showRealProducts ? (
                   <ProductScrollerProductCards products={products} />
                 ) : (
@@ -297,7 +292,14 @@ export function registerProductScroller() {
               </div>
 
               {showPagination ? (
-                <ProductScrollerPagination itemCount={visibleItemCount} />
+                <SliderPaginationDots
+                  count={visibleItemCount}
+                  activeIndex={activeIndex}
+                  onSelect={goToIndex}
+                  className="riyasat-product-scroller__pagination"
+                  dotClassName="riyasat-product-scroller__pagination-dot"
+                  ariaLabelPrefix="Go to product"
+                />
               ) : null}
 
               {buttonText ? (

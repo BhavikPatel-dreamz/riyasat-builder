@@ -30,6 +30,21 @@ export const CLIENT_STORIES_ITEM_BLOCK = "core/client-stories-item";
 export const SHOP_THE_LOOK_BLOCK = "core/shop-the-look";
 export const SHOP_THE_LOOK_ITEM_BLOCK = "core/shop-the-look-item";
 
+export const OCCASION_BLOCK = "core/occasion";
+export const OCCASION_TAB_BLOCK = "core/occasion-tab";
+export const OCCASION_TAB_ITEM_BLOCK = "core/occasion-tab-item";
+
+export const CATEGORIES_SCROLLER_BLOCK = "core/categories-scroller";
+export const CATEGORIES_SCROLLER_ITEM_BLOCK = "core/categories-scroller-item";
+
+export const HERO_BANNER_SLIDER_BLOCK = "core/hero-banner-slider";
+export const HERO_BANNER_SLIDER_ITEM_BLOCK = "core/hero-banner-slider-item";
+
+export const OCCASION_CARDS_GRID_BLOCK = "core/occasion-cards-grid";
+export const OCCASION_CARD_ITEM_BLOCK = "core/occasion-card-item";
+
+export const READY_TO_SHIP_BANNER_BLOCK = "core/ready-to-ship-banner";
+
 /**
  * Blocks kept registered + insertable. Everything else (all WP core blocks) is
  * unregistered in index.ts; the kit's myapp/* demos are dropped via
@@ -54,4 +69,14 @@ export const RIYASAT_BLOCKS = [
   CLIENT_STORIES_ITEM_BLOCK,
   SHOP_THE_LOOK_BLOCK,
   SHOP_THE_LOOK_ITEM_BLOCK,
+  OCCASION_BLOCK,
+  OCCASION_TAB_BLOCK,
+  OCCASION_TAB_ITEM_BLOCK,
+  CATEGORIES_SCROLLER_BLOCK,
+  CATEGORIES_SCROLLER_ITEM_BLOCK,
+  HERO_BANNER_SLIDER_BLOCK,
+  HERO_BANNER_SLIDER_ITEM_BLOCK,
+  OCCASION_CARDS_GRID_BLOCK,
+  OCCASION_CARD_ITEM_BLOCK,
+  READY_TO_SHIP_BANNER_BLOCK,
 ];

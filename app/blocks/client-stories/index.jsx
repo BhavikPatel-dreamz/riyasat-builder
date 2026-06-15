@@ -2,7 +2,7 @@
 // Client Stories — parent (core/client-stories) + child testimonial card
 // (core/client-stories-item) using InnerBlocks. Authored against the kit's
 // shared @wordpress runtime; registered from ../index.ts.
-import { registerBlockType } from 'gutenberg-block-kit/wp/blocks';
+import { registerBlockType, createBlock } from 'gutenberg-block-kit/wp/blocks';
 import {
   useBlockProps,
   InnerBlocks,
@@ -17,9 +17,9 @@ import {
   ToggleControl,
   Button,
 } from 'gutenberg-block-kit/wp/components';
-import { useState, useEffect } from 'gutenberg-block-kit/wp/element';
-import { useSelect } from 'gutenberg-block-kit/wp/data';
+import { useState } from 'gutenberg-block-kit/wp/element';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
+import { contentTabStyle, ImagePicker, useChildBlocks, useSliderPagination, SliderPaginationDots } from '../inspector-shared';
 import {
   CLIENT_STORIES_BLOCK,
   CLIENT_STORIES_ITEM_BLOCK,
@@ -82,92 +82,46 @@ function registerClientStoriesItem() {
 
       return (
         <>
-          <InspectorControls>
-            <PanelBody title="Image" initialOpen={true}>
-              <MediaUploadCheck>
-                <MediaUpload
-                  onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
-                  allowedTypes={['image']}
-                  render={({ open }) => (
-                    <div>
-                      {imageUrl ? (
-                        <div
-                          onClick={open}
-                          style={{
-                            marginBottom: '8px',
-                            borderRadius: '6px',
-                            overflow: 'hidden',
-                            cursor: 'pointer',
-                            border: '1px solid #ddd',
-                          }}
-                        >
-                          <img
-                            src={imageUrl}
-                            alt=""
-                            style={{
-                              width: '100%',
-                              height: '80px',
-                              objectFit: 'cover',
-                              display: 'block',
-                            }}
-                          />
-                        </div>
-                      ) : null}
-                      <Button
-                        onClick={open}
-                        variant="secondary"
-                        style={{ width: '100%', justifyContent: 'center' }}
-                      >
-                        {imageUrl ? 'Change Image' : 'Add Image'}
-                      </Button>
-                      {imageUrl ? (
-                        <Button
-                          onClick={() => setAttributes({ imageUrl: '' })}
-                          variant="link"
-                          isDestructive
-                          style={{ marginTop: '4px' }}
-                        >
-                          Remove Image
-                        </Button>
-                      ) : null}
-                    </div>
-                  )}
+          <InspectorControls group="content">
+            <div style={contentTabStyle}>
+              <PanelBody title="Story" initialOpen={true}>
+                <ImagePicker
+                  imageUrl={imageUrl}
+                  onSelect={(url) => setAttributes({ imageUrl: url })}
+                  onClear={() => setAttributes({ imageUrl: '' })}
                 />
-              </MediaUploadCheck>
-            </PanelBody>
-
-            <PanelBody title="Content" initialOpen={true}>
-              <TextControl
-                label="Review"
-                value={review}
-                onChange={(value) => setAttributes({ review: value })}
-              />
-              <TextControl
-                label="Rating"
-                value={rating}
-                onChange={(value) => setAttributes({ rating: value })}
-              />
-              <TextControl
-                label="Reviewer name"
-                value={reviewerName}
-                onChange={(value) => setAttributes({ reviewerName: value })}
-              />
-              <TextControl
-                label="City"
-                value={city}
-                onChange={(value) => setAttributes({ city: value })}
-              />
-              <TextControl
-                label="Button text"
-                value={buttonText}
-                onChange={(value) => setAttributes({ buttonText: value })}
-              />
-              <ActionBuilder
-                label="Button action"
-                value={action}
-                onChange={(next) => setAttributes({ action: next })}
-              />
-            </PanelBody>
+                <TextControl
+                  label="Review"
+                  value={review}
+                  onChange={(value) => setAttributes({ review: value })}
+                />
+                <TextControl
+                  label="Rating"
+                  value={rating}
+                  onChange={(value) => setAttributes({ rating: value })}
+                />
+                <TextControl
+                  label="Reviewer name"
+                  value={reviewerName}
+                  onChange={(value) => setAttributes({ reviewerName: value })}
+                />
+                <TextControl
+                  label="City"
+                  value={city}
+                  onChange={(value) => setAttributes({ city: value })}
+                />
+                <TextControl
+                  label="Button text"
+                  value={buttonText}
+                  onChange={(value) => setAttributes({ buttonText: value })}
+                />
+                <ActionBuilder
+                  label="Button action"
+                  value={action}
+                  onChange={(next) => setAttributes({ action: next })}
+                />
+              </PanelBody>
+            </div>
           </InspectorControls>
 
           <div {...blockProps}>
@@ -280,62 +234,140 @@ function registerClientStoriesParent() {
         attributes;
       const blockProps = useBlockProps({ className: 'riyasat-client-stories-editor' });
       const [activeIndex, setActiveIndex] = useState(0);
-      const storyCount = useSelect(
-        (select) => select('core/block-editor').getBlockCount(clientId),
-        [clientId],
-      );
-
-      useEffect(() => {
-        if (storyCount <= 0) {
-          setActiveIndex(0);
-          return;
-        }
-        if (activeIndex > storyCount - 1) setActiveIndex(storyCount - 1);
-      }, [activeIndex, storyCount]);
+      const { childBlocks, childCount, insertBlock, removeBlock, updateBlockAttributes } =
+        useChildBlocks(clientId);
+      const { trackRef, slideCount, goToSlide } = useSliderPagination(clientId, activeIndex, setActiveIndex);
 
       return (
         <>
-          <InspectorControls>
-            <PanelBody title="Heading" initialOpen={true}>
-              <TextControl
-                label="Title"
-                value={title}
-                onChange={(value) => setAttributes({ title: value })}
-              />
-              <TextControl
-                label="Subtitle"
-                value={subTitle}
-                onChange={(value) => setAttributes({ subTitle: value })}
-              />
-            </PanelBody>
+          <InspectorControls group="content">
+            <div style={contentTabStyle}>
+              <PanelBody title="Heading" initialOpen={true}>
+                <TextControl
+                  label="Title"
+                  value={title}
+                  onChange={(value) => setAttributes({ title: value })}
+                />
+                <TextControl
+                  label="Subtitle"
+                  value={subTitle}
+                  onChange={(value) => setAttributes({ subTitle: value })}
+                />
+              </PanelBody>
+              {childBlocks.map((block, index) => {
+                const {
+                  review,
+                  rating,
+                  imageUrl,
+                  reviewerName,
+                  city,
+                  buttonText,
+                  action: storyAction,
+                } = block.attributes;
+                return (
+                  <PanelBody
+                    key={block.clientId}
+                    title={`Story ${index + 1}`}
+                    initialOpen={false}
+                  >
+                    <ImagePicker
+                      imageUrl={imageUrl}
+                      onSelect={(url) =>
+                        updateBlockAttributes(block.clientId, { imageUrl: url })
+                      }
+                      onClear={() => updateBlockAttributes(block.clientId, { imageUrl: '' })}
+                    />
+                    <TextControl
+                      label="Review"
+                      value={review}
+                      onChange={(value) =>
+                        updateBlockAttributes(block.clientId, { review: value })
+                      }
+                    />
+                    <TextControl
+                      label="Rating"
+                      value={rating}
+                      onChange={(value) =>
+                        updateBlockAttributes(block.clientId, { rating: value })
+                      }
+                    />
+                    <TextControl
+                      label="Reviewer name"
+                      value={reviewerName}
+                      onChange={(value) =>
+                        updateBlockAttributes(block.clientId, { reviewerName: value })
+                      }
+                    />
+                    <TextControl
+                      label="City"
+                      value={city}
+                      onChange={(value) =>
+                        updateBlockAttributes(block.clientId, { city: value })
+                      }
+                    />
+                    <TextControl
+                      label="Button text"
+                      value={buttonText}
+                      onChange={(value) =>
+                        updateBlockAttributes(block.clientId, { buttonText: value })
+                      }
+                    />
+                    <ActionBuilder
+                      label="Button action"
+                      value={storyAction}
+                      onChange={(next) =>
+                        updateBlockAttributes(block.clientId, { action: next })
+                      }
+                    />
+                    {childCount > 1 ? (
+                      <Button
+                        onClick={() => removeBlock(block.clientId)}
+                        variant="link"
+                        isDestructive
+                        style={{ marginTop: '8px' }}
+                      >
+                        Remove story
+                      </Button>
+                    ) : null}
+                  </PanelBody>
+                );
+              })}
+              <Button
+                variant="primary"
+                onClick={() =>
+                  insertBlock(createBlock(CLIENT_STORIES_ITEM_BLOCK, {}), childCount, clientId)
+                }
+                style={{ width: '100%', justifyContent: 'center' }}
+              >
+                Add story
+              </Button>
+            </div>
+          </InspectorControls>
 
+          <InspectorControls>
             <PanelBody title="Settings" initialOpen={true}>
               <ToggleControl
                 label="Show pagination"
                 checked={showPagination}
                 onChange={(value) => setAttributes({ showPagination: value })}
               />
-            </PanelBody>
-
-            <PanelBody title="Section action" initialOpen={false}>
+              <PanelColorSettings
+                title="Colors"
+                colorSettings={[
+                  {
+                    label: 'Background color',
+                    value: backgroundColor,
+                    onChange: (value) =>
+                      setAttributes({ backgroundColor: value || DEFAULT_BACKGROUND }),
+                  },
+                ]}
+              />
               <ActionBuilder
-                label="Action"
+                label="Section action"
                 value={action}
                 onChange={(next) => setAttributes({ action: next })}
               />
             </PanelBody>
-
-            <PanelColorSettings
-              title="Colors"
-              colorSettings={[
-                {
-                  label: 'Background color',
-                  value: backgroundColor,
-                  onChange: (value) =>
-                    setAttributes({ backgroundColor: value || DEFAULT_BACKGROUND }),
-                },
-              ]}
-            />
           </InspectorControls>
 
           <div {...blockProps}>
@@ -354,7 +386,7 @@ function registerClientStoriesParent() {
                 </div>
               )}
 
-              <div className="riyasat-client-stories__track">
+              <div className="riyasat-client-stories__track" ref={trackRef}>
                 <InnerBlocks
                   allowedBlocks={[CLIENT_STORIES_ITEM_BLOCK]}
                   template={[
@@ -363,25 +395,20 @@ function registerClientStoriesParent() {
                     [CLIENT_STORIES_ITEM_BLOCK, {}],
                   ]}
                   templateLock={false}
-                  renderAppender={InnerBlocks.ButtonBlockAppender}
+                  renderAppender={false}
                   orientation="horizontal"
                 />
               </div>
 
-              {showPagination && storyCount > 1 ? (
-                <div className="riyasat-client-stories__pagination">
-                  {Array.from({ length: storyCount }).map((_, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      className={`riyasat-client-stories__dot${
-                        index === activeIndex ? ' is-active' : ''
-                      }`}
-                      aria-label={`Go to story ${index + 1}`}
-                      onClick={() => setActiveIndex(index)}
-                    />
-                  ))}
-                </div>
+              {showPagination ? (
+                <SliderPaginationDots
+                  count={slideCount}
+                  activeIndex={activeIndex}
+                  onSelect={goToSlide}
+                  className="riyasat-client-stories__pagination"
+                  dotClassName="riyasat-client-stories__dot"
+                  ariaLabelPrefix="Go to story"
+                />
               ) : null}
             </div>
           </div>

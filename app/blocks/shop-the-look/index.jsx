@@ -3,7 +3,8 @@
 // (core/shop-the-look-item) using InnerBlocks. Each item carries a thumbnail
 // image, a video URL, a CTA label and an action. Authored against the kit's
 // shared @wordpress runtime; registered from ../index.ts.
-import { registerBlockType } from 'gutenberg-block-kit/wp/blocks';
+import { useState } from 'gutenberg-block-kit/wp/element';
+import { registerBlockType, createBlock } from 'gutenberg-block-kit/wp/blocks';
 import {
   useBlockProps,
   InnerBlocks,
@@ -19,6 +20,7 @@ import {
   Button,
 } from 'gutenberg-block-kit/wp/components';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
+import { contentTabStyle, ImagePicker, useChildBlocks, useSliderPagination, SliderPaginationDots } from '../inspector-shared';
 import {
   SHOP_THE_LOOK_BLOCK,
   SHOP_THE_LOOK_ITEM_BLOCK,
@@ -72,124 +74,57 @@ function registerShopTheLookItem() {
 
       return (
         <>
-          <InspectorControls>
-            <PanelBody title="Thumbnail" initialOpen={true}>
-              <MediaUploadCheck>
-                <MediaUpload
-                  onSelect={(media) =>
-                    setAttributes({ thumbnailUrl: media?.url ?? '' })
-                  }
-                  allowedTypes={['image']}
-                  render={({ open }) => (
-                    <div>
-                      {thumbnailUrl ? (
-                        <div
-                          onClick={open}
-                          style={{
-                            marginBottom: '8px',
-                            borderRadius: '6px',
-                            overflow: 'hidden',
-                            cursor: 'pointer',
-                            border: '1px solid #ddd',
-                          }}
-                        >
-                          <img
-                            src={thumbnailUrl}
-                            alt=""
-                            style={{
-                              width: '100%',
-                              height: '80px',
-                              objectFit: 'cover',
-                              display: 'block',
-                            }}
-                          />
-                        </div>
-                      ) : null}
-                      <Button
-                        onClick={open}
-                        variant="secondary"
-                        style={{ width: '100%', justifyContent: 'center' }}
-                      >
-                        {thumbnailUrl ? 'Change Thumbnail' : 'Add Thumbnail'}
-                      </Button>
-                      {thumbnailUrl ? (
-                        <Button
-                          onClick={() => setAttributes({ thumbnailUrl: '' })}
-                          variant="link"
-                          isDestructive
-                          style={{ marginTop: '4px' }}
-                        >
-                          Remove Thumbnail
-                        </Button>
-                      ) : null}
-                    </div>
-                  )}
+          <InspectorControls group="content">
+            <div style={contentTabStyle}>
+              <PanelBody title="Look" initialOpen={true}>
+                <ImagePicker
+                  imageUrl={thumbnailUrl}
+                  addLabel="Add thumbnail"
+                  changeLabel="Change thumbnail"
+                  onSelect={(url) => setAttributes({ thumbnailUrl: url })}
+                  onClear={() => setAttributes({ thumbnailUrl: '' })}
                 />
-              </MediaUploadCheck>
-            </PanelBody>
-
-            <PanelBody title="Video" initialOpen={true}>
-              <MediaUploadCheck>
-                <MediaUpload
-                  onSelect={(media) =>
-                    setAttributes({ videoUrl: media?.url ?? '' })
-                  }
-                  allowedTypes={['video']}
-                  render={({ open }) => (
-                    <div>
-                      <Button
-                        onClick={open}
-                        variant="secondary"
-                        style={{ width: '100%', justifyContent: 'center' }}
-                      >
-                        {videoUrl ? 'Change Video' : 'Add Video'}
-                      </Button>
-                      {videoUrl ? (
-                        <>
-                          <p
-                            style={{
-                              margin: '6px 0 0',
-                              fontSize: '11px',
-                              color: '#666',
-                              wordBreak: 'break-all',
-                            }}
-                          >
-                            {videoUrl}
-                          </p>
+                <MediaUploadCheck>
+                  <MediaUpload
+                    onSelect={(media) => setAttributes({ videoUrl: media?.url ?? '' })}
+                    allowedTypes={['video']}
+                    render={({ open }) => (
+                      <div style={{ marginTop: '12px' }}>
+                        <Button onClick={open} variant="secondary" style={{ width: '100%' }}>
+                          {videoUrl ? 'Change video' : 'Add video'}
+                        </Button>
+                        {videoUrl ? (
                           <Button
                             onClick={() => setAttributes({ videoUrl: '' })}
                             variant="link"
                             isDestructive
                             style={{ marginTop: '4px' }}
                           >
-                            Remove Video
+                            Remove video
                           </Button>
-                        </>
-                      ) : null}
-                    </div>
-                  )}
+                        ) : null}
+                      </div>
+                    )}
+                  />
+                </MediaUploadCheck>
+                <TextControl
+                  label="Video URL"
+                  value={videoUrl}
+                  onChange={(value) => setAttributes({ videoUrl: value })}
+                  help="Or paste a video URL directly."
                 />
-              </MediaUploadCheck>
-              <TextControl
-                label="Video URL"
-                value={videoUrl}
-                onChange={(value) => setAttributes({ videoUrl: value })}
-                help="Or paste a video URL directly."
-              />
-            </PanelBody>
-
-            <PanelBody title="Content" initialOpen={true}>
-              <TextControl
-                label="Button text"
-                value={buttonText}
-                onChange={(value) => setAttributes({ buttonText: value })}
-              />
-              <ActionBuilder
-                label="Button action"
-                value={action}
-                onChange={(next) => setAttributes({ action: next })}
-              />
-            </PanelBody>
+                <TextControl
+                  label="Button text"
+                  value={buttonText}
+                  onChange={(value) => setAttributes({ buttonText: value })}
+                />
+                <ActionBuilder
+                  label="Button action"
+                  value={action}
+                  onChange={(next) => setAttributes({ action: next })}
+                />
+              </PanelBody>
+            </div>
           </InspectorControls>
 
           <div {...blockProps}>
@@ -279,47 +214,150 @@ function registerShopTheLookParent() {
       showPagination: { type: 'boolean', default: true },
     },
 
-    edit: ({ attributes, setAttributes }) => {
+    edit: ({ attributes, setAttributes, clientId }) => {
       const { title, subTitle, backgroundColor, showPagination } = attributes;
       const blockProps = useBlockProps({
         className: 'riyasat-shop-the-look-editor',
       });
+      const { childBlocks, childCount, insertBlock, removeBlock, updateBlockAttributes } =
+        useChildBlocks(clientId);
+      const [activeIndex, setActiveIndex] = useState(0);
+      const { trackRef, slideCount, goToSlide } = useSliderPagination(
+        clientId,
+        activeIndex,
+        setActiveIndex,
+      );
 
       return (
         <>
-          <InspectorControls>
-            <PanelBody title="Heading" initialOpen={true}>
-              <TextControl
-                label="Title"
-                value={title}
-                onChange={(value) => setAttributes({ title: value })}
-              />
-              <TextControl
-                label="Subtitle"
-                value={subTitle}
-                onChange={(value) => setAttributes({ subTitle: value })}
-              />
-            </PanelBody>
+          <InspectorControls group="content">
+            <div style={contentTabStyle}>
+              <PanelBody title="Heading" initialOpen={true}>
+                <TextControl
+                  label="Title"
+                  value={title}
+                  onChange={(value) => setAttributes({ title: value })}
+                />
+                <TextControl
+                  label="Subtitle"
+                  value={subTitle}
+                  onChange={(value) => setAttributes({ subTitle: value })}
+                />
+              </PanelBody>
+              {childBlocks.map((block, index) => {
+                const { thumbnailUrl, videoUrl, buttonText, action } = block.attributes;
+                return (
+                  <PanelBody
+                    key={block.clientId}
+                    title={`Look ${index + 1}`}
+                    initialOpen={false}
+                  >
+                    <ImagePicker
+                      imageUrl={thumbnailUrl}
+                      addLabel="Add thumbnail"
+                      changeLabel="Change thumbnail"
+                      onSelect={(url) =>
+                        updateBlockAttributes(block.clientId, { thumbnailUrl: url })
+                      }
+                      onClear={() =>
+                        updateBlockAttributes(block.clientId, { thumbnailUrl: '' })
+                      }
+                    />
+                    <MediaUploadCheck>
+                      <MediaUpload
+                        onSelect={(media) =>
+                          updateBlockAttributes(block.clientId, {
+                            videoUrl: media?.url ?? '',
+                          })
+                        }
+                        allowedTypes={['video']}
+                        render={({ open }) => (
+                          <div style={{ marginTop: '12px' }}>
+                            <Button onClick={open} variant="secondary" style={{ width: '100%' }}>
+                              {videoUrl ? 'Change video' : 'Add video'}
+                            </Button>
+                            {videoUrl ? (
+                              <Button
+                                onClick={() =>
+                                  updateBlockAttributes(block.clientId, { videoUrl: '' })
+                                }
+                                variant="link"
+                                isDestructive
+                                style={{ marginTop: '4px' }}
+                              >
+                                Remove video
+                              </Button>
+                            ) : null}
+                          </div>
+                        )}
+                      />
+                    </MediaUploadCheck>
+                    <TextControl
+                      label="Video URL"
+                      value={videoUrl}
+                      onChange={(value) =>
+                        updateBlockAttributes(block.clientId, { videoUrl: value })
+                      }
+                      help="Or paste a video URL directly."
+                    />
+                    <TextControl
+                      label="Button text"
+                      value={buttonText}
+                      onChange={(value) =>
+                        updateBlockAttributes(block.clientId, { buttonText: value })
+                      }
+                    />
+                    <ActionBuilder
+                      label="Button action"
+                      value={action}
+                      onChange={(next) =>
+                        updateBlockAttributes(block.clientId, { action: next })
+                      }
+                    />
+                    {childCount > 1 ? (
+                      <Button
+                        onClick={() => removeBlock(block.clientId)}
+                        variant="link"
+                        isDestructive
+                        style={{ marginTop: '8px' }}
+                      >
+                        Remove look
+                      </Button>
+                    ) : null}
+                  </PanelBody>
+                );
+              })}
+              <Button
+                variant="primary"
+                onClick={() =>
+                  insertBlock(createBlock(SHOP_THE_LOOK_ITEM_BLOCK, {}), childCount, clientId)
+                }
+                style={{ width: '100%', justifyContent: 'center' }}
+              >
+                Add look
+              </Button>
+            </div>
+          </InspectorControls>
 
+          <InspectorControls>
             <PanelBody title="Settings" initialOpen={true}>
               <ToggleControl
                 label="Show pagination"
                 checked={showPagination}
                 onChange={(value) => setAttributes({ showPagination: value })}
               />
+              <PanelColorSettings
+                title="Colors"
+                colorSettings={[
+                  {
+                    label: 'Background color',
+                    value: backgroundColor,
+                    onChange: (value) =>
+                      setAttributes({ backgroundColor: value || DEFAULT_BACKGROUND }),
+                  },
+                ]}
+              />
             </PanelBody>
-
-            <PanelColorSettings
-              title="Colors"
-              colorSettings={[
-                {
-                  label: 'Background color',
-                  value: backgroundColor,
-                  onChange: (value) =>
-                    setAttributes({ backgroundColor: value || DEFAULT_BACKGROUND }),
-                },
-              ]}
-            />
           </InspectorControls>
 
           <div {...blockProps}>
@@ -336,7 +374,7 @@ function registerShopTheLookParent() {
                 ) : null}
               </div>
 
-              <div className="riyasat-shop-the-look__track">
+              <div className="riyasat-shop-the-look__track" ref={trackRef}>
                 <InnerBlocks
                   allowedBlocks={[SHOP_THE_LOOK_ITEM_BLOCK]}
                   template={[
@@ -345,17 +383,20 @@ function registerShopTheLookParent() {
                     [SHOP_THE_LOOK_ITEM_BLOCK, {}],
                   ]}
                   templateLock={false}
-                  renderAppender={InnerBlocks.ButtonBlockAppender}
+                  renderAppender={false}
                   orientation="horizontal"
                 />
               </div>
 
               {showPagination ? (
-                <div className="riyasat-shop-the-look__pagination" aria-hidden="true">
-                  <span className="riyasat-shop-the-look__pagination-dot riyasat-shop-the-look__pagination-dot--active" />
-                  <span className="riyasat-shop-the-look__pagination-dot riyasat-shop-the-look__pagination-dot--inactive" />
-                  <span className="riyasat-shop-the-look__pagination-dot riyasat-shop-the-look__pagination-dot--inactive" />
-                </div>
+                <SliderPaginationDots
+                  count={slideCount}
+                  activeIndex={activeIndex}
+                  onSelect={goToSlide}
+                  className="riyasat-shop-the-look__pagination"
+                  dotClassName="riyasat-shop-the-look__pagination-dot"
+                  ariaLabelPrefix="Go to look"
+                />
               ) : null}
             </div>
           </div>

@@ -23,69 +23,36 @@
   object-fit: cover;
 }
 
-.riyasat-image-carousel__pagination {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  z-index: 2;
-}
-
-.riyasat-image-carousel__pagination--preview {
-  padding: 8px 14px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.32);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
-  pointer-events: none;
-}
-
-.riyasat-image-carousel__dot {
-  display: block;
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.45);
-  border: 1.5px solid rgba(255, 255, 255, 0.7);
-  flex-shrink: 0;
-  transition:
-    width 0.28s ease,
-    height 0.28s ease,
-    background 0.28s ease,
-    border-color 0.28s ease,
-    box-shadow 0.28s ease;
-}
-
-.riyasat-image-carousel__pagination--preview .riyasat-image-carousel__dot {
-  width: 8px;
-  height: 8px;
-}
-
-.riyasat-image-carousel__dot.is-active {
-  width: 22px;
-  height: 8px;
-  border-radius: 999px;
-  background: #ffffff;
-  border-color: #ffffff;
-  box-shadow: 0 1px 6px rgba(0, 0,  0, 0.2);
-}
-
-.riyasat-image-carousel__pagination--preview .riyasat-image-carousel__dot.is-active {
-  width: 24px;
-  height: 8px;
-}
-
 .riyasat-image-carousel-editor {
   border: 1px solid #ddd;
   border-radius: 8px;
   overflow: hidden;
 }
 
-/* Editor preview: show one slide at a time */
+/* Hero carousel editor: one full-width slide at a time (not horizontal scroll) */
+.riyasat-image-carousel-editor .riyasat-image-carousel__track {
+  overflow: hidden;
+}
+
+.riyasat-image-carousel-editor .riyasat-image-carousel__track .block-editor-inner-blocks,
+.riyasat-image-carousel-editor .riyasat-image-carousel__track .block-editor-block-list__layout {
+  display: block !important;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  gap: 0 !important;
+}
+
+.riyasat-image-carousel-editor .riyasat-image-carousel__track .block-editor-block-list__layout > *,
+.riyasat-image-carousel-editor .riyasat-image-carousel__track .block-editor-block-list__block {
+  flex: none !important;
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  margin: 0;
+  box-sizing: border-box;
+}
+
 .riyasat-image-carousel-editor .riyasat-image-carousel__track .block-editor-block-list__layout > * {
   display: none;
 }
@@ -148,6 +115,7 @@
   position: relative;
   min-height: 280px;
   background: #1a1a2e;
+  width: 100%;
 }
 
 .riyasat-image-carousel-item-editor__placeholder,
