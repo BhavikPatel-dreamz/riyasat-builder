@@ -1,6 +1,4 @@
 .riyasat-free-consultation-editor {
-  border: 1px solid #ddd;
-  border-radius: 8px;
   overflow: hidden;
 }
 
@@ -9,8 +7,8 @@
   flex-direction: column;
   align-items: stretch;
   gap: 16px;
-  padding: 24px 16px;
-  border-radius: 8px;
+  padding: 40px 15px;
+  color: #fff;
 }
 
 .riyasat-free-consultation__heading {
@@ -51,7 +49,6 @@
   color: #fff;
   background: #2a2a4a;
   border: none;
-  border-radius: 10px;
   font-size: 14px;
   padding: 0;
 }
@@ -64,7 +61,6 @@
 .riyasat-free-consultation__video {
   width: 100%;
   display: block;
-  border-radius: 10px;
   object-fit: cover;
 }
 
@@ -90,7 +86,6 @@
   padding: 12px 28px;
   background: #1a1a2e;
   color: #fff;
-  border-radius: 8px;
   font-weight: 600;
   font-size: 14px;
   line-height: 1.3;

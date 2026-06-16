@@ -57,7 +57,7 @@
   flex-direction: row;
   flex-wrap: nowrap;
   gap: 20px;
-  width: max-content;
+  width: 100%;
   min-width: 100%;
   align-items: stretch;
 }

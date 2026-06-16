@@ -74,7 +74,7 @@
   flex-direction: row;
   flex-wrap: nowrap;
   gap: 12px;
-  width: max-content;
+  width: 100%;
   min-width: 100%;
 }
 
@@ -140,4 +140,9 @@
 .riyasat-occasion-tab-item__label {
   font-size: 13px;
   color: #000;
+}
+
+
+.editor-canvas-wrapper :is(h1,h2,h3,h4,h5,h6,p,button,input,textarea,select,option,label,span,a):hover {
+  outline: 1px solid #2563EB;
 }

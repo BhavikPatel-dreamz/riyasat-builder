@@ -1,12 +1,9 @@
 .riyasat-occasion-cards-grid-editor {
-  border: 1px solid #ddd;
-  border-radius: 8px;
   overflow: hidden;
 }
 
 .riyasat-occasion-cards-grid {
-  padding: 28px 16px;
-  border-radius: 8px;
+  padding: 40px 15px;
 }
 
 .riyasat-occasion-cards-grid__heading {
@@ -121,9 +118,7 @@
   flex-direction: row;
   align-items: stretch;
   background: #fff;
-  border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
 .riyasat-occasion-card-item-editor__card[data-image-position='right'] {
@@ -167,20 +162,23 @@
 .riyasat-occasion-card-item-editor__field {
   width: 100%;
   border: none;
-  border-bottom: 1px solid #9ca3af;
   background: transparent;
-  padding: 6px 0;
+  padding: 0 0;
   font: inherit;
   color: inherit;
   outline: none;
+  font-size: 14px;
 }
 
 .riyasat-occasion-card-item-editor__field--description {
   resize: vertical;
   min-height: 72px;
+  font-size: 12px;
+  padding: 0;
 }
 
 .riyasat-occasion-card-item-editor__field--button {
   font-weight: 600;
   color: #971a4c;
+  font-size: 12px;
 }

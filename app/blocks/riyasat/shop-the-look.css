@@ -54,7 +54,7 @@
   flex-direction: row;
   flex-wrap: nowrap;
   gap: 20px;
-  width: max-content;
+  width: 100%;
   min-width: 100%;
   align-items: stretch;
 }
@@ -73,7 +73,6 @@
 .riyasat-shop-the-look-item-editor {
   position: relative;
   width: 100%;
-  border-radius: 12px;
   overflow: hidden;
   background: #2a2a4a;
 }

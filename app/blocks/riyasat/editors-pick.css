@@ -63,6 +63,7 @@
   width: var(--riyasat-editors-pick-slide-width) !important;
   margin: 0;
   box-sizing: border-box;
+  position: relative;
 }
 
 .riyasat-editors-pick-editor .block-list-appender {
@@ -109,7 +110,6 @@
   color: #fff;
   background: #2a2a4a;
   border: none;
-  border-radius: 10px;
   font-size: 14px;
   padding: 0;
 }
@@ -122,33 +122,37 @@
   width: 100%;
   height: var(--riyasat-editors-pick-image-height);
   object-fit: cover;
-  border-radius: 10px;
   display: block;
   cursor: pointer;
+  object-position: top;
 }
 
 .riyasat-editors-pick-item-editor__body {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 8px;
   width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  padding: 10px;
+  text-align: left;
+  align-items: center;
+  align-content: center;
 }
 
 .riyasat-editors-pick-item-editor__field {
   width: 100%;
   margin: 0;
-  padding: 4px 2px;
+  padding: 0;
   border: 0;
-  border-top: 0;
-  border-left: 0;
-  border-right: 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 0;
   background: transparent;
   color: inherit;
   font-size: 14px;
   line-height: 1.35;
-  text-align: center;
+  text-align: left;
   box-sizing: border-box;
   resize: vertical;
   outline: none;
@@ -156,6 +160,7 @@
   -webkit-appearance: none;
   appearance: none;
   font-family: inherit;
+  color: #fff;
 }
 
 .riyasat-editors-pick-item-editor__field::placeholder {
@@ -185,9 +190,8 @@
   align-self: center;
   margin-top: 2px;
   padding: 8px 18px;
-  background: #1a1a2e;
-  color: #fff;
-  border-radius: 6px;
+  background: #fff;
+  color: #1a1a2e;
   font-weight: 600;
   font-size: 13px;
   line-height: 1.3;

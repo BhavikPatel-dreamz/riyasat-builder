@@ -1,17 +1,14 @@
 .riyasat-ready-to-ship-banner-editor {
-  border: 1px solid #ddd;
-  border-radius: 8px;
   overflow: hidden;
 }
 
 .riyasat-ready-to-ship-banner {
   display: flex;
-  flex-direction: row;
-  align-items: stretch;
+  flex-direction: column;
   gap: 24px;
-  padding: 28px 20px;
-  border-radius: 8px;
+  padding: 40px 15px;
   color: #fff;
+  text-align: center;
 }
 
 .riyasat-ready-to-ship-banner__content {
@@ -51,7 +48,11 @@
 .riyasat-ready-to-ship-banner__stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.riyasat-ready-to-ship-banner__media {
+  width: 100%;
   margin-bottom: 24px;
 }
 
@@ -59,6 +60,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  width: 33.3333%;
 }
 
 .riyasat-ready-to-ship-banner__stat-value {
@@ -77,13 +79,13 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  justify-content: center;
 }
 
 .riyasat-ready-to-ship-banner__button {
   display: inline-block;
   padding: 10px 18px;
   border: 1px solid transparent;
-  border-radius: 4px;
   font-size: 12px;
   font-weight: 700;
   line-height: 1.3;
@@ -98,12 +100,6 @@
 .riyasat-ready-to-ship-banner__button--secondary {
   color: #fff;
   background: transparent;
-}
-
-.riyasat-ready-to-ship-banner__media {
-  flex: 0 0 42%;
-  max-width: 42%;
-  min-width: 0;
 }
 
 .riyasat-ready-to-ship-banner__media-btn {
@@ -125,7 +121,6 @@
 .riyasat-ready-to-ship-banner__video {
   width: 100%;
   display: block;
-  border-radius: 10px;
   object-fit: cover;
 }
 
@@ -137,16 +132,4 @@
 .riyasat-ready-to-ship-banner__video {
   max-height: 320px;
   background: #000;
-}
-
-@media (max-width: 720px) {
-  .riyasat-ready-to-ship-banner {
-    flex-direction: column;
-  }
-
-  .riyasat-ready-to-ship-banner__media {
-    flex: none;
-    max-width: 100%;
-    width: 100%;
-  }
 }

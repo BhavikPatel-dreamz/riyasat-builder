@@ -398,6 +398,14 @@ export function registerReadyToShipBanner() {
                   </div>
                 ) : null}
 
+                <div className="riyasat-ready-to-ship-banner__media">
+                  <ReadyToShipMedia
+                    media={media}
+                    hasMedia={hasMedia}
+                    onSelectMedia={onSelectMedia}
+                  />
+                </div>
+
                 <div className="riyasat-ready-to-ship-banner__buttons">
                   {primaryButtonText ? (
                     <span
@@ -424,14 +432,6 @@ export function registerReadyToShipBanner() {
                     </span>
                   ) : null}
                 </div>
-              </div>
-
-              <div className="riyasat-ready-to-ship-banner__media">
-                <ReadyToShipMedia
-                  media={media}
-                  hasMedia={hasMedia}
-                  onSelectMedia={onSelectMedia}
-                />
               </div>
             </div>
           </div>
@@ -507,6 +507,25 @@ export function registerReadyToShipBanner() {
               </div>
             ) : null}
 
+            {media?.url ? (
+              <div className="riyasat-ready-to-ship-banner__media">
+                {isVideoMedia(media) ? (
+                  <video
+                    className="riyasat-ready-to-ship-banner__video"
+                    src={media.url}
+                    playsInline
+                    muted
+                  />
+                ) : (
+                  <img
+                    className="riyasat-ready-to-ship-banner__image"
+                    src={media.url}
+                    alt=""
+                  />
+                )}
+              </div>
+            ) : null}
+
             <div className="riyasat-ready-to-ship-banner__buttons">
               {primaryButtonText ? (
                 <span
@@ -532,25 +551,6 @@ export function registerReadyToShipBanner() {
               ) : null}
             </div>
           </div>
-
-          {media?.url ? (
-            <div className="riyasat-ready-to-ship-banner__media">
-              {isVideoMedia(media) ? (
-                <video
-                  className="riyasat-ready-to-ship-banner__video"
-                  src={media.url}
-                  playsInline
-                  muted
-                />
-              ) : (
-                <img
-                  className="riyasat-ready-to-ship-banner__image"
-                  src={media.url}
-                  alt=""
-                />
-              )}
-            </div>
-          ) : null}
         </div>
       );
     },

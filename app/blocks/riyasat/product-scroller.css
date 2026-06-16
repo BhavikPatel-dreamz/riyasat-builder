@@ -1,6 +1,4 @@
 .riyasat-product-scroller-editor {
-  border: 1px solid #ddd;
-  border-radius: 8px;
   overflow: hidden;
 }
 
@@ -8,8 +6,7 @@
   --riyasat-product-scroller-accent: var(--riyasat-accent);
   --riyasat-product-scroller-card-width: calc((100% - 20px) / 1.5);
   --riyasat-product-scroller-image-height: 260px;
-  padding: 24px 16px;
-  border-radius: 8px;
+  padding: 40px 15px;
 }
 
 .riyasat-product-scroller__heading {
@@ -44,11 +41,8 @@
   gap: 20px;
   width: 100%;
   max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: hidden;
   margin: 0;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
 }
 
 .riyasat-product-scroller__card {
@@ -137,7 +131,6 @@
   display: flex;
   flex-wrap: nowrap;
   gap: 20px;
-  overflow-x: auto;
   width: 100%;
   max-width: 100%;
 }
