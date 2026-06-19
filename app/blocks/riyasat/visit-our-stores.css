@@ -18,7 +18,7 @@
   text-align: center;
 }
 
-.riyasat-visit-our-stores__subtitle {
+.riyasat-visit-our-stores__title {
   margin: 0 0 6px;
   font-size: 12px;
   font-weight: 600;
@@ -28,7 +28,7 @@
   color: #000;
 }
 
-.riyasat-visit-our-stores__title {
+.riyasat-visit-our-stores__subtitle {
   margin: 0;
   font-size: 22px;
   font-weight: 700;

@@ -12,7 +12,7 @@
   text-align: center;
 }
 
-.riyasat-occasion__subtitle {
+.riyasat-occasion__title {
   margin: 0 0 6px;
   font-size: 12px;
   font-weight: 600;
@@ -22,7 +22,7 @@
   color: #000;
 }
 
-.riyasat-occasion__title {
+.riyasat-occasion__subtitle {
   margin: 0;
   font-size: 22px;
   font-weight: 700;

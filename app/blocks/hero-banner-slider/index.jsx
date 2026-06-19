@@ -77,12 +77,12 @@ function HeroBannerSlideFields({ attributes, onChange }) {
         onClear={() => onChange({ imageUrl: '' })}
       />
       <TextControl
-        label="Title"
+        label="Main Title"
         value={title}
         onChange={(value) => onChange({ title: value })}
       />
       <TextControl
-        label="Subtitle"
+        label="Sub Title"
         value={subTitle}
         onChange={(value) => onChange({ subTitle: value })}
       />
@@ -214,11 +214,11 @@ function HeroBannerSlidePreview({ attributes, setAttributes }) {
       )}
 
       <div className={contentClass}>
-        {subTitle ? (
-          <p className="riyasat-hero-banner-slider-item-editor__subtitle">{subTitle}</p>
-        ) : null}
         {title ? (
           <h3 className="riyasat-hero-banner-slider-item-editor__title">{title}</h3>
+        ) : null}
+        {subTitle ? (
+          <p className="riyasat-hero-banner-slider-item-editor__subtitle">{subTitle}</p>
         ) : null}
         {description ? (
           <p className="riyasat-hero-banner-slider-item-editor__description">{description}</p>
@@ -336,10 +336,10 @@ function registerHeroBannerSliderItem() {
             <img src={imageUrl} alt="" className="riyasat-hero-banner-slider__image" />
           ) : null}
           <div className="riyasat-hero-banner-slider__content">
+            {title ? <h3 className="riyasat-hero-banner-slider__title">{title}</h3> : null}
             {subTitle ? (
               <p className="riyasat-hero-banner-slider__subtitle">{subTitle}</p>
             ) : null}
-            {title ? <h3 className="riyasat-hero-banner-slider__title">{title}</h3> : null}
             {description ? (
               <p className="riyasat-hero-banner-slider__description">{description}</p>
             ) : null}

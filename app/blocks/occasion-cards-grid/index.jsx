@@ -299,12 +299,12 @@ function registerOccasionCardsGridParent() {
             <div style={contentTabStyle}>
               <PanelBody title="Heading" initialOpen={true}>
                 <TextControl
-                  label="Title"
+                  label="Main Title"
                   value={title}
                   onChange={(value) => setAttributes({ title: value })}
                 />
                 <TextControl
-                  label="Subtitle"
+                  label="Sub Title"
                   value={subTitle}
                   onChange={(value) => setAttributes({ subTitle: value })}
                 />
@@ -376,11 +376,11 @@ function registerOccasionCardsGridParent() {
               style={{ background: backgroundColor }}
             >
               <header className="riyasat-occasion-cards-grid__heading">
+                  {title ? (
+                  <h2 className="riyasat-occasion-cards-grid__title">{title}</h2>
+                ) : null}
                 {subTitle ? (
                   <p className="riyasat-occasion-cards-grid__subtitle">{subTitle}</p>
-                ) : null}
-                {title ? (
-                  <h2 className="riyasat-occasion-cards-grid__title">{title}</h2>
                 ) : null}
               </header>
 
@@ -412,10 +412,10 @@ function registerOccasionCardsGridParent() {
       return (
         <div {...blockProps}>
           <header className="riyasat-occasion-cards-grid__heading">
+            {title ? <h2 className="riyasat-occasion-cards-grid__title">{title}</h2> : null}
             {subTitle ? (
               <p className="riyasat-occasion-cards-grid__subtitle">{subTitle}</p>
             ) : null}
-            {title ? <h2 className="riyasat-occasion-cards-grid__title">{title}</h2> : null}
           </header>
           <div className="riyasat-occasion-cards-grid__list">
             <InnerBlocks.Content />

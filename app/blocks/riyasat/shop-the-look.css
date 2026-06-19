@@ -14,7 +14,7 @@
 }
 
 /* Subtitle — smaller, uppercase */
-.riyasat-shop-the-look__subtitle {
+.riyasat-shop-the-look__title {
   margin: 0 0 8px;
   font-size: 12px;
   font-weight: 600;
@@ -25,7 +25,7 @@
 }
 
 /* Title — larger, preserves user casing */
-.riyasat-shop-the-look__title {
+.riyasat-shop-the-look__subtitle {
   margin: 0 0 20px;
   font-size: 22px;
   font-weight: 700;

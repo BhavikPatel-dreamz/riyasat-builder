@@ -248,12 +248,12 @@ function registerVisitOurStoresParent() {
             <div style={contentTabStyle}>
               <PanelBody title="Heading" initialOpen={true}>
                 <TextControl
-                  label="Title"
+                  label="Main Title"
                   value={title}
                   onChange={(value) => setAttributes({ title: value })}
                 />
                 <TextControl
-                  label="Subtitle"
+                  label="Sub Title"
                   value={subTitle}
                   onChange={(value) => setAttributes({ subTitle: value })}
                 />
@@ -359,11 +359,11 @@ function registerVisitOurStoresParent() {
             >
               {(subTitle || title) && (
                 <div className="riyasat-visit-our-stores__heading">
-                  {subTitle ? (
-                    <p className="riyasat-visit-our-stores__subtitle">{subTitle}</p>
-                  ) : null}
                   {title ? (
                     <h3 className="riyasat-visit-our-stores__title">{title}</h3>
+                  ) : null}
+                  {subTitle ? (
+                    <p className="riyasat-visit-our-stores__subtitle">{subTitle}</p>
                   ) : null}
                 </div>
               )}
@@ -410,11 +410,11 @@ function registerVisitOurStoresParent() {
       return (
         <div {...blockProps}>
           <div className="riyasat-visit-our-stores__heading">
+                  {title ? (
+              <h3 className="riyasat-visit-our-stores__title">{title}</h3>
+            ) : null}
             {subTitle ? (
               <p className="riyasat-visit-our-stores__subtitle">{subTitle}</p>
-            ) : null}
-            {title ? (
-              <h3 className="riyasat-visit-our-stores__title">{title}</h3>
             ) : null}
           </div>
           <div className="riyasat-visit-our-stores__track">

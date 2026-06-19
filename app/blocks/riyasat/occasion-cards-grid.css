@@ -11,7 +11,7 @@
   margin-bottom: 24px;
 }
 
-.riyasat-occasion-cards-grid__subtitle {
+.riyasat-occasion-cards-grid__title {
   margin: 0 0 8px;
   font-size: 12px;
   font-weight: 600;
@@ -22,7 +22,7 @@
   opacity: 0.72;
 }
 
-.riyasat-occasion-cards-grid__title {
+.riyasat-occasion-cards-grid__subtitle {
   margin: 0;
   font-size: 24px;
   font-weight: 700;

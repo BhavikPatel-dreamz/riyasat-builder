@@ -14,7 +14,7 @@
   text-align: center;
 }
 
-.riyasat-client-stories__subtitle {
+.riyasat-client-stories__title {
   margin: 0 0 8px;
   font-size: 12px;
   font-weight: 600;
@@ -24,7 +24,7 @@
   color: var(--riyasat-client-stories-brand);
 }
 
-.riyasat-client-stories__title {
+.riyasat-client-stories__subtitle {
   margin: 0;
   font-size: 28px;
   font-weight: 700;

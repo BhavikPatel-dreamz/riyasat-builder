@@ -212,12 +212,12 @@ export function registerReadyToShipBanner() {
             <div style={contentTabStyle}>
               <PanelBody title="Heading" initialOpen={true}>
                 <TextControl
-                  label="Title"
+                  label="Main Title"
                   value={title}
                   onChange={(value) => setAttributes({ title: value })}
                 />
                 <TextControl
-                  label="Subtitle"
+                  label="Sub Title"
                   value={subTitle}
                   onChange={(value) => setAttributes({ subTitle: value })}
                 />
@@ -366,11 +366,11 @@ export function registerReadyToShipBanner() {
               style={{ background: backgroundColor, color: '#fff' }}
             >
               <div className="riyasat-ready-to-ship-banner__content">
+                  {title ? (
+                  <h2 className="riyasat-ready-to-ship-banner__title">{title}</h2>
+                ) : null}
                 {subTitle ? (
                   <p className="riyasat-ready-to-ship-banner__subtitle">{subTitle}</p>
-                ) : null}
-                {title ? (
-                  <h2 className="riyasat-ready-to-ship-banner__title">{title}</h2>
                 ) : null}
                 {description ? (
                   <p className="riyasat-ready-to-ship-banner__description">{description}</p>
@@ -475,10 +475,10 @@ export function registerReadyToShipBanner() {
       return (
         <div {...blockProps}>
           <div className="riyasat-ready-to-ship-banner__content">
+            {title ? <h2 className="riyasat-ready-to-ship-banner__title">{title}</h2> : null}
             {subTitle ? (
               <p className="riyasat-ready-to-ship-banner__subtitle">{subTitle}</p>
             ) : null}
-            {title ? <h2 className="riyasat-ready-to-ship-banner__title">{title}</h2> : null}
             {description ? (
               <p className="riyasat-ready-to-ship-banner__description">{description}</p>
             ) : null}

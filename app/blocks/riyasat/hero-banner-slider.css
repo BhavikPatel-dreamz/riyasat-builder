@@ -47,7 +47,7 @@
   bottom: 0;
 }
 
-.riyasat-hero-banner-slider__subtitle {
+.riyasat-hero-banner-slider__title {
   margin: 0 0 8px;
   font-size: 12px;
   font-weight: 600;
@@ -55,7 +55,7 @@
   text-transform: uppercase;
 }
 
-.riyasat-hero-banner-slider__title {
+.riyasat-hero-banner-slider__subtitle {
   margin: 0 0 10px;
   font-size: 24px;
   font-weight: 700;
@@ -232,7 +232,7 @@
   background: linear-gradient(to top, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0));
 }
 
-.riyasat-hero-banner-slider-item-editor__subtitle {
+.riyasat-hero-banner-slider-item-editor__title {
   margin: 0 0 8px;
   font-size: 12px;
   font-weight: 600;
@@ -240,7 +240,7 @@
   text-transform: uppercase;
 }
 
-.riyasat-hero-banner-slider-item-editor__title {
+.riyasat-hero-banner-slider-item-editor__subtitle {
   margin: 0 0 10px;
   font-size: 22px;
   font-weight: 700;

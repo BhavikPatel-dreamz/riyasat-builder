@@ -14,7 +14,7 @@
   text-align: center;
 }
 
-.riyasat-editors-pick__subtitle {
+.riyasat-editors-pick__title {
   margin: 0 0 6px;
   font-size: 12px;
   font-weight: 600;
@@ -24,7 +24,7 @@
   color: #000;
 }
 
-.riyasat-editors-pick__title {
+.riyasat-editors-pick__subtitle {
   margin: 0;
   font-size: 22px;
   font-weight: 700;

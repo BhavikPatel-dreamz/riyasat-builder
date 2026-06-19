@@ -19,7 +19,7 @@
   min-width: 0;
 }
 
-.riyasat-ready-to-ship-banner__subtitle {
+.riyasat-ready-to-ship-banner__title {
   margin: 0 0 8px;
   font-size: 12px;
   font-weight: 600;
@@ -29,7 +29,7 @@
   opacity: 0.85;
 }
 
-.riyasat-ready-to-ship-banner__title {
+.riyasat-ready-to-ship-banner__subtitle {
   margin: 0 0 12px;
   font-size: 24px;
   font-weight: 700;

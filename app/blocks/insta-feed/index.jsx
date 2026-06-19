@@ -186,12 +186,12 @@ function registerInstaFeedParent() {
             <div style={contentTabStyle}>
               <PanelBody title="Heading" initialOpen={true}>
                 <TextControl
-                  label="Title"
+                  label="Main Title"
                   value={title}
                   onChange={(value) => setAttributes({ title: value })}
                 />
                 <TextControl
-                  label="Subtitle"
+                  label="Sub Title"
                   value={subTitle}
                   onChange={(value) => setAttributes({ subTitle: value })}
                 />
@@ -271,11 +271,11 @@ function registerInstaFeedParent() {
             >
               {(subTitle || title) && (
                 <div className="riyasat-insta-feed__heading">
-                  {subTitle ? (
-                    <p className="riyasat-insta-feed__subtitle">{subTitle}</p>
-                  ) : null}
                   {title ? (
                     <h3 className="riyasat-insta-feed__title">{title}</h3>
+                  ) : null}
+                  {subTitle ? (
+                    <p className="riyasat-insta-feed__subtitle">{subTitle}</p>
                   ) : null}
                 </div>
               )}
@@ -310,11 +310,11 @@ function registerInstaFeedParent() {
       return (
         <div {...blockProps}>
           <div className="riyasat-insta-feed__heading">
+                  {title ? (
+              <h3 className="riyasat-insta-feed__title">{title}</h3>
+            ) : null}
             {subTitle ? (
               <p className="riyasat-insta-feed__subtitle">{subTitle}</p>
-            ) : null}
-            {title ? (
-              <h3 className="riyasat-insta-feed__title">{title}</h3>
             ) : null}
           </div>
           <div className="riyasat-insta-feed__grid">

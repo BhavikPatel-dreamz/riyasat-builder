@@ -13,7 +13,7 @@
   text-align: center;
 }
 
-.riyasat-insta-feed__subtitle {
+.riyasat-insta-feed__title {
   margin: 0 0 8px;
   font-size: 12px;
   font-weight: 600;
@@ -23,7 +23,7 @@
   color: var(--riyasat-insta-feed-accent);
 }
 
-.riyasat-insta-feed__title {
+.riyasat-insta-feed__subtitle {
   margin: 0;
   font-size: 26px;
   font-weight: 700;

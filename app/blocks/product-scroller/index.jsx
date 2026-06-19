@@ -189,12 +189,12 @@ export function registerProductScroller() {
             <div style={contentTabStyle}>
               <PanelBody title="Heading" initialOpen={true}>
                 <TextControl
-                  label="Title"
+                  label="Main Title"
                   value={title}
                   onChange={(value) => setAttributes({ title: value })}
                 />
                 <TextControl
-                  label="Subtitle"
+                  label="Sub Title"
                   value={subTitle}
                   onChange={(value) => setAttributes({ subTitle: value })}
                 />
@@ -275,11 +275,11 @@ export function registerProductScroller() {
               style={{ background: backgroundColor }}
             >
               <div className="riyasat-product-scroller__heading">
-                {subTitle ? (
-                  <p className="riyasat-product-scroller__subtitle">{subTitle}</p>
-                ) : null}
                 {title ? (
                   <h3 className="riyasat-product-scroller__title">{title}</h3>
+                ) : null}
+                {subTitle ? (
+                  <p className="riyasat-product-scroller__subtitle">{subTitle}</p>
                 ) : null}
               </div>
 
@@ -334,11 +334,11 @@ export function registerProductScroller() {
       return (
         <div {...blockProps}>
           <div className="riyasat-product-scroller__heading">
+                  {title ? (
+              <h3 className="riyasat-product-scroller__title">{title}</h3>
+            ) : null}
             {subTitle ? (
               <p className="riyasat-product-scroller__subtitle">{subTitle}</p>
-            ) : null}
-            {title ? (
-              <h3 className="riyasat-product-scroller__title">{title}</h3>
             ) : null}
           </div>
           {showPagination ? (

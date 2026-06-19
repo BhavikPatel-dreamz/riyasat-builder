@@ -129,12 +129,12 @@ export function registerFreeConsultation() {
             <div style={contentTabStyle}>
               <PanelBody title="Heading" initialOpen={true}>
                 <TextControl
-                  label="Title"
+                  label="Main Title"
                   value={title}
                   onChange={(value) => setAttributes({ title: value })}
                 />
                 <TextControl
-                  label="Subtitle"
+                  label="Sub Title"
                   value={subTitle}
                   onChange={(value) => setAttributes({ subTitle: value })}
                 />
@@ -226,11 +226,11 @@ export function registerFreeConsultation() {
             >
               {(subTitle || title || description) && (
                 <div className="riyasat-free-consultation__heading">
-                  {subTitle ? (
-                    <p className="riyasat-free-consultation__subtitle">{subTitle}</p>
-                  ) : null}
                   {title ? (
                     <h3 className="riyasat-free-consultation__title">{title}</h3>
+                  ) : null}
+                  {subTitle ? (
+                    <p className="riyasat-free-consultation__subtitle">{subTitle}</p>
                   ) : null}
                   {description ? (
                     <p className="riyasat-free-consultation__description">
@@ -280,11 +280,11 @@ export function registerFreeConsultation() {
         <div {...blockProps}>
           {(subTitle || title || description) && (
             <div className="riyasat-free-consultation__heading">
+                  {title ? (
+                <h3 className="riyasat-free-consultation__title">{title}</h3>
+              ) : null}
               {subTitle ? (
                 <p className="riyasat-free-consultation__subtitle">{subTitle}</p>
-              ) : null}
-              {title ? (
-                <h3 className="riyasat-free-consultation__title">{title}</h3>
               ) : null}
               {description ? (
                 <p className="riyasat-free-consultation__description">{description}</p>

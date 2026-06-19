@@ -29,13 +29,31 @@ function mergeProducts(existing, picked) {
   return Array.from(byId.values());
 }
 
+function StandardSelectedProductsIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      width="24"
+      height="24"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        fill="currentColor"
+        d="M7 4h10l1 3H6l1-3zm-2 5h14l-1.2 9H6.2L5 9zm4 2v5h2v-5H9zm4 0v5h2v-5h-2z"
+      />
+    </svg>
+  );
+}
+
 export function registerStandardSelectedProducts() {
   registerBlockType(STANDARD_SELECTED_PRODUCTS_BLOCK, {
     apiVersion: 3,
     title: 'Selected Products',
     description: 'Select multiple individual products across collections.',
     category: RIYASAT_CATEGORY,
-    icon: 'products',
+    icon: StandardSelectedProductsIcon,
     supports: { html: false, align: ['wide', 'full'] },
     attributes: {
       products: { type: 'array', default: [] },
