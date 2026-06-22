@@ -19,6 +19,7 @@ import riyasatCategoriesScrollerStyles from "../blocks/riyasat/categories-scroll
 import riyasatHeroBannerSliderStyles from "../blocks/riyasat/hero-banner-slider.css?url";
 import riyasatOccasionCardsGridStyles from "../blocks/riyasat/occasion-cards-grid.css?url";
 import riyasatReadyToShipBannerStyles from "../blocks/riyasat/ready-to-ship-banner.css?url";
+import riyasatSelectedProductsStyles from "../blocks/riyasat/selected-products.css?url";
 
 import { getPageBySlug } from "../lib/cms.server";
 
@@ -40,6 +41,7 @@ export const links: LinksFunction = () => [
   { rel: "stylesheet", href: riyasatHeroBannerSliderStyles },
   { rel: "stylesheet", href: riyasatOccasionCardsGridStyles },
   { rel: "stylesheet", href: riyasatReadyToShipBannerStyles },
+  { rel: "stylesheet", href: riyasatSelectedProductsStyles },
 ];
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {

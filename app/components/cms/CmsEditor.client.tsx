@@ -16,6 +16,7 @@ import "../../blocks/riyasat/categories-scroller.css";
 import "../../blocks/riyasat/hero-banner-slider.css";
 import "../../blocks/riyasat/occasion-cards-grid.css";
 import "../../blocks/riyasat/ready-to-ship-banner.css";
+import "../../blocks/riyasat/selected-products.css";
 import { BlockEditor } from "gutenberg-block-kit/editor";
 
 type CmsEditorProps = {

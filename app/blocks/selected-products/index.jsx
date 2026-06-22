@@ -1,11 +1,17 @@
 // @ts-nocheck
 // Selected Products — single block (standard/selected-products).
 import { registerBlockType } from 'gutenberg-block-kit/wp/blocks';
-import { useBlockProps, InspectorControls } from 'gutenberg-block-kit/wp/block-editor';
-import { PanelBody, Button } from 'gutenberg-block-kit/wp/components';
+import {
+  useBlockProps,
+  InspectorControls,
+  PanelColorSettings,
+} from 'gutenberg-block-kit/wp/block-editor';
+import { PanelBody, Button, TextControl } from 'gutenberg-block-kit/wp/components';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
 import { contentTabStyle } from '../inspector-shared';
 import { STANDARD_SELECTED_PRODUCTS_BLOCK, RIYASAT_CATEGORY } from '../constants';
+
+const DEFAULT_BACKGROUND = '#FFFFFF';
 
 async function pickProducts() {
   const picker = typeof window !== 'undefined' ? window.shopify?.resourcePicker : null;
@@ -56,12 +62,15 @@ export function registerStandardSelectedProducts() {
     icon: StandardSelectedProductsIcon,
     supports: { html: false, align: ['wide', 'full'] },
     attributes: {
+      title: { type: 'string', default: '' },
+      subTitle: { type: 'string', default: '' },
+      backgroundColor: { type: 'string', default: DEFAULT_BACKGROUND },
       products: { type: 'array', default: [] },
       action: { type: 'object', default: {} },
     },
 
     edit: ({ attributes, setAttributes }) => {
-      const { products, action } = attributes;
+      const { title, subTitle, backgroundColor, products, action } = attributes;
       const productList = Array.isArray(products) ? products : [];
       const blockProps = useBlockProps({
         className: 'riyasat-standard-selected-products-editor',
@@ -81,6 +90,18 @@ export function registerStandardSelectedProducts() {
         <>
           <InspectorControls group="content">
             <div style={contentTabStyle}>
+              <PanelBody title="Heading" initialOpen={true}>
+                <TextControl
+                  label="Main Title"
+                  value={title}
+                  onChange={(value) => setAttributes({ title: value })}
+                />
+                <TextControl
+                  label="Sub Title"
+                  value={subTitle}
+                  onChange={(value) => setAttributes({ subTitle: value })}
+                />
+              </PanelBody>
               <PanelBody title="Selected Products" initialOpen={true}>
                 <Button
                   variant="secondary"
@@ -123,90 +144,89 @@ export function registerStandardSelectedProducts() {
             </div>
           </InspectorControls>
 
+          <InspectorControls>
+            <PanelBody title="Settings" initialOpen={true}>
+              <PanelColorSettings
+                title="Colors"
+                colorSettings={[
+                  {
+                    label: 'Background color',
+                    value: backgroundColor,
+                    onChange: (value) =>
+                      setAttributes({ backgroundColor: value || DEFAULT_BACKGROUND }),
+                  },
+                ]}
+              />
+            </PanelBody>
+          </InspectorControls>
+
           <div {...blockProps}>
-            {productList.length > 0 ? (
-              <div
-                style={{
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  padding: '10px',
-                  background: '#fff',
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: '12px',
-                    color: '#6b7280',
-                    marginBottom: '8px',
-                    fontWeight: 600,
-                  }}
-                >
-                  {productList.length} selected product(s)
+            <div
+              className="riyasat-standard-selected-products"
+              style={{ background: backgroundColor }}
+            >
+              {(title || subTitle) && (
+                <div className="riyasat-standard-selected-products__heading">
+                  {title ? (
+                    <h3 className="riyasat-standard-selected-products__title">{title}</h3>
+                  ) : null}
+                  {subTitle ? (
+                    <p className="riyasat-standard-selected-products__subtitle">{subTitle}</p>
+                  ) : null}
                 </div>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-                    gap: '8px',
-                  }}
-                >
+              )}
+              {productList.length > 0 ? (
+                <div className="riyasat-standard-selected-products__grid">
                   {productList.map((product, index) => (
                     <div
                       key={`${product.productId}-${index}-preview`}
-                      style={{
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        padding: '8px',
-                        minHeight: '60px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        gap: '2px',
-                      }}
+                      className="riyasat-standard-selected-products__card"
                     >
-                      <div style={{ fontSize: '11px', color: '#6b7280' }}>
+                      <div className="riyasat-standard-selected-products__card-id">
                         {product.productId || '-'}
                       </div>
-                      <div
-                        style={{
-                          fontSize: '12px',
-                          color: '#111827',
-                          fontWeight: 600,
-                          wordBreak: 'break-word',
-                        }}
-                      >
+                      <div className="riyasat-standard-selected-products__card-handle">
                         {product.productHandle || 'product'}
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
-            ) : (
-              <div
-                style={{
-                  border: '1px dashed rgba(0,0,0,0.2)',
-                  borderRadius: '8px',
-                  padding: '12px',
-                  fontSize: '12px',
-                  color: '#6b7280',
-                }}
-              >
-                Select products from the right sidebar
-              </div>
-            )}
+              ) : (
+                <div className="riyasat-standard-selected-products__empty">
+                  Select products from the right sidebar
+                </div>
+              )}
+            </div>
           </div>
         </>
       );
     },
 
     save: ({ attributes }) => {
-      const { products, action } = attributes;
+      const { title, subTitle, backgroundColor, products, action } = attributes;
       const blockProps = useBlockProps.save({
         className: 'riyasat-standard-selected-products',
+        'data-title': title || '',
+        'data-sub-title': subTitle || '',
+        'data-background-color': backgroundColor || DEFAULT_BACKGROUND,
         'data-products': JSON.stringify(Array.isArray(products) ? products : []),
         'data-action': JSON.stringify(action ?? {}),
+        style: { background: backgroundColor || DEFAULT_BACKGROUND },
       });
-      return <div {...blockProps} />;
+      return (
+        <div {...blockProps}>
+          {(title || subTitle) && (
+            <div className="riyasat-standard-selected-products__heading">
+              {title ? (
+                <h3 className="riyasat-standard-selected-products__title">{title}</h3>
+              ) : null}
+              {subTitle ? (
+                <p className="riyasat-standard-selected-products__subtitle">{subTitle}</p>
+              ) : null}
+            </div>
+          )}
+        </div>
+      );
     },
   });
 }
