@@ -7,10 +7,59 @@ import {
   MediaUpload,
   MediaUploadCheck,
 } from 'gutenberg-block-kit/wp/block-editor';
-import { PanelBody, Button } from 'gutenberg-block-kit/wp/components';
+import { PanelBody, Button, TextControl } from 'gutenberg-block-kit/wp/components';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
 import { contentTabStyle } from '../inspector-shared';
 import { STANDARD_BANNER_BLOCK, RIYASAT_CATEGORY } from '../constants';
+
+function parseDimension(value, fallback = 0) {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
+function getBannerImageStyle(imageWidth, imageHeight) {
+  const style = {
+    display: 'block',
+    borderRadius: '8px',
+    objectFit: 'cover',
+    maxWidth: '100%',
+  };
+
+  if (imageWidth > 0) {
+    style.width = `${imageWidth}px`;
+  } else {
+    style.width = '100%';
+  }
+
+  if (imageHeight > 0) {
+    style.height = `${imageHeight}px`;
+  } else {
+    style.minHeight = '160px';
+  }
+
+  return style;
+}
+
+function getBannerPlaceholderStyle(imageWidth, imageHeight) {
+  const style = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: '1px dashed rgba(0, 0, 0, 0.25)',
+    borderRadius: '8px',
+    color: '#6b7280',
+    maxWidth: '100%',
+  };
+
+  if (imageWidth > 0) {
+    style.width = `${imageWidth}px`;
+  } else {
+    style.width = '100%';
+  }
+
+  style.minHeight = imageHeight > 0 ? `${imageHeight}px` : '160px';
+  return style;
+}
 
 function StandardBannerIcon() {
   return (
@@ -40,11 +89,15 @@ export function registerStandardBanner() {
     supports: { html: false, align: ['wide', 'full'] },
     attributes: {
       imageUrl: { type: 'string', default: '' },
+      imageWidth: { type: 'number', default: 0 },
+      imageHeight: { type: 'number', default: 0 },
       action: { type: 'object', default: {} },
     },
 
     edit: ({ attributes, setAttributes }) => {
-      const { imageUrl, action } = attributes;
+      const { imageUrl, imageWidth, imageHeight, action } = attributes;
+      const width = parseDimension(imageWidth);
+      const height = parseDimension(imageHeight);
       const blockProps = useBlockProps({ className: 'riyasat-standard-banner-editor' });
 
       return (
@@ -81,6 +134,24 @@ export function registerStandardBanner() {
                     )}
                   />
                 </MediaUploadCheck>
+                <TextControl
+                  label="Image width"
+                  type="number"
+                  help="Width in pixels. Use 0 for full width."
+                  value={String(width)}
+                  onChange={(value) =>
+                    setAttributes({ imageWidth: parseDimension(value) })
+                  }
+                />
+                <TextControl
+                  label="Image height"
+                  type="number"
+                  help="Height in pixels. Use 0 for auto height."
+                  value={String(height)}
+                  onChange={(value) =>
+                    setAttributes({ imageHeight: parseDimension(value) })
+                  }
+                />
                 <ActionBuilder
                   label="Banner action"
                   value={action ?? {}}
@@ -95,26 +166,10 @@ export function registerStandardBanner() {
               <img
                 src={imageUrl}
                 alt=""
-                style={{
-                  width: '100%',
-                  display: 'block',
-                  borderRadius: '8px',
-                  minHeight: '160px',
-                  objectFit: 'cover',
-                }}
+                style={getBannerImageStyle(width, height)}
               />
             ) : (
-              <div
-                style={{
-                  minHeight: '160px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: '1px dashed rgba(0, 0, 0, 0.25)',
-                  borderRadius: '8px',
-                  color: '#6b7280',
-                }}
-              >
+              <div style={getBannerPlaceholderStyle(width, height)}>
                 Select banner image from sidebar
               </div>
             )}
@@ -124,16 +179,25 @@ export function registerStandardBanner() {
     },
 
     save: ({ attributes }) => {
-      const { imageUrl, action } = attributes;
+      const { imageUrl, imageWidth, imageHeight, action } = attributes;
+      const width = parseDimension(imageWidth);
+      const height = parseDimension(imageHeight);
       const blockProps = useBlockProps.save({
         className: 'riyasat-standard-banner',
+        'data-image-width': `${width}`,
+        'data-image-height': `${height}`,
         'data-action': JSON.stringify(action ?? {}),
       });
 
       return (
         <div {...blockProps}>
           {imageUrl ? (
-            <img src={imageUrl} alt="" className="riyasat-standard-banner__image" />
+            <img
+              src={imageUrl}
+              alt=""
+              className="riyasat-standard-banner__image"
+              style={getBannerImageStyle(width, height)}
+            />
           ) : null}
         </div>
       );
