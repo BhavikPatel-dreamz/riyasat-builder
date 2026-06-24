@@ -132,6 +132,27 @@ export function CmsEditorShell({
     import("../../blocks");
   }, []);
 
+  useEffect(() => {
+    function keepWidgetListOpen() {
+      const inserterToggle = document.querySelector(
+        ".cms-editor-shell .toolbar-inserter-btn",
+      ) as HTMLButtonElement | null;
+
+      if (
+        inserterToggle &&
+        inserterToggle.getAttribute("data-inserter-open") !== "true"
+      ) {
+        inserterToggle.click();
+      }
+    }
+
+    keepWidgetListOpen();
+    const observer = new MutationObserver(keepWidgetListOpen);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
+  }, []);
+
   const [meta, setMeta] = useState<MetaState>({
     slug: initialSlug,
     description: initialDescription,

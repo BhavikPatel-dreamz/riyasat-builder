@@ -43,6 +43,20 @@
   display: none !important;
 }
 
+/* Remove "+" inserter toggle and keep widget list as the default left panel. */
+.cms-editor-shell .builder-wrapper .toolbar-inserter-btn {
+  display: none !important;
+}
+
+/* Hide inserter close button so left widget list stays available. */
+.cms-editor-shell
+  .builder-wrapper
+  .gbk-inserter-panel
+  .block-editor-inserter-sidebar__header
+  button {
+  display: none !important;
+}
+
 .cms-page-switcher {
   width: 100%;
   max-width: 360px;

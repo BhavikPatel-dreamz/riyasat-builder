@@ -87,6 +87,8 @@ export function CmsPageSwitcher({
   pages: initialPages = [],
 }: CmsPageSwitcherProps) {
   const navigate = useNavigate();
+  const currentSearch =
+    typeof window !== "undefined" ? window.location.search || "" : "";
   const mountNode = useHeaderCenterMount();
   const [pages, setPages] = useState<CmsPageListItem[]>(initialPages);
   const [loading, setLoading] = useState(initialPages.length === 0);
@@ -225,15 +227,18 @@ export function CmsPageSwitcher({
         return;
       }
       setOpen(false);
-      navigate(`/app/${pageId}`);
+      navigate(`/app/${pageId}${currentSearch}`);
     },
-    [currentPageId, navigate],
+    [currentPageId, currentSearch, navigate],
   );
 
   const createNew = useCallback(() => {
     setOpen(false);
-    navigate(`/app/new?type=${contentType}`);
-  }, [contentType, navigate]);
+    const params = new URLSearchParams(currentSearch);
+    params.set("type", contentType);
+    const search = params.toString();
+    navigate(`/app/new${search ? `?${search}` : ""}`);
+  }, [contentType, currentSearch, navigate]);
 
   if (!mountNode) {
     return null;
