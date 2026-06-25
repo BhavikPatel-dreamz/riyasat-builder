@@ -48,7 +48,9 @@ function ReadyToShipBannerIcon() {
 
 const isVideoMedia = (media) =>
   media?.type === 'video' ||
-  (typeof media?.type === 'string' && media.type.startsWith('video/'));
+  (typeof media?.type === 'string' && media.type.startsWith('video/')) ||
+  (typeof media?.mimeType === 'string' && media.mimeType.startsWith('video/')) ||
+  (typeof media?.mime === 'string' && media.mime.startsWith('video/'));
 
 function resolveMediaType(selected) {
   const mime =

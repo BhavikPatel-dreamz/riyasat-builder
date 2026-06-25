@@ -1,4 +1,5 @@
 import { createMediaRecord } from "./cms.server";
+import { inferMimeType, isVideoMimeType } from "./media-mime";
 
 type ShopifyAdminClient = {
   graphql: (
@@ -13,6 +14,7 @@ export type MediaItem = {
   alt?: string;
   title?: string;
   mimeType?: string;
+  type?: "image" | "video" | "file";
   width?: number;
   height?: number;
 };
@@ -31,6 +33,69 @@ type ListImagesResult = {
   totalPages: number;
 };
 
+type VideoSourceNode = {
+  url?: string | null;
+  mimeType?: string | null;
+  format?: string | null;
+  width?: number | null;
+  height?: number | null;
+};
+
+type FileNode = {
+  id: string;
+  alt?: string | null;
+  mimeType?: string | null;
+  fileStatus?: string | null;
+  image?: {
+    url?: string | null;
+    altText?: string | null;
+    width?: number | null;
+    height?: number | null;
+  } | null;
+  url?: string | null;
+  originalSource?: VideoSourceNode | null;
+  sources?: VideoSourceNode[] | null;
+};
+
+const FILE_TYPE_FIELDS = `
+  ... on MediaImage {
+    mimeType
+    image {
+      url
+      altText
+      width
+      height
+    }
+  }
+  ... on GenericFile {
+    mimeType
+    url
+  }
+  ... on Video {
+    originalSource {
+      url
+      mimeType
+      width
+      height
+      format
+    }
+    sources {
+      url
+      mimeType
+      width
+      height
+      format
+    }
+  }
+`;
+
+const FILE_FIELDS = `
+  id
+  alt
+  fileStatus
+  ${FILE_TYPE_FIELDS}
+`;
+
 const LIST_FILES_QUERY = `#graphql
   query CmsListFiles($first: Int!, $after: String, $query: String) {
     files(
@@ -46,21 +111,7 @@ const LIST_FILES_QUERY = `#graphql
       }
       edges {
         node {
-          id
-          alt
-          ... on MediaImage {
-            mimeType
-            image {
-              url
-              altText
-              width
-              height
-            }
-          }
-          ... on GenericFile {
-            mimeType
-            url
-          }
+          ${FILE_FIELDS}
         }
       }
     }
@@ -88,20 +139,7 @@ const FILE_CREATE_MUTATION = `#graphql
   mutation CmsFileCreate($files: [FileCreateInput!]!) {
     fileCreate(files: $files) {
       files {
-        id
-        alt
-        fileStatus
-        ... on MediaImage {
-          image {
-            url
-            altText
-          }
-          mimeType
-        }
-        ... on GenericFile {
-          url
-          mimeType
-        }
+        ${FILE_FIELDS}
       }
       userErrors {
         field
@@ -110,59 +148,99 @@ const FILE_CREATE_MUTATION = `#graphql
     }
   }`;
 
-// fileCreate returns as soon as the record exists — for an image that's before
-// Shopify finishes processing it, so image.url is still null and fileStatus is
-// UPLOADED, not READY. Re-fetch the node by id until the CDN url is populated.
 const FILE_STATUS_QUERY = `#graphql
   query CmsFileStatus($id: ID!) {
     node(id: $id) {
-      id
-      ... on MediaImage {
-        alt
-        fileStatus
-        mimeType
-        image {
-          url
-          altText
-          width
-          height
-        }
-      }
-      ... on GenericFile {
-        alt
-        fileStatus
-        url
-        mimeType
+      ... on File {
+        ${FILE_FIELDS}
       }
     }
   }`;
 
-function toMediaItem(node: {
-  id: string;
-  alt?: string | null;
-  mimeType?: string | null;
-  image?: {
-    url?: string | null;
-    altText?: string | null;
-    width?: number | null;
-    height?: number | null;
-  } | null;
-  url?: string | null;
-}): MediaItem | null {
-  const url = node.image?.url || node.url;
+function pickVideoSource(node: FileNode): {
+  url: string;
+  mimeType?: string;
+  width?: number;
+  height?: number;
+} | null {
+  const sources = node.sources ?? [];
+  const mp4 =
+    sources.find((source) => source.format === "mp4") ??
+    sources.find((source) => source.mimeType?.includes("mp4"));
 
-  if (!url) {
+  if (mp4?.url) {
+    return {
+      url: mp4.url,
+      mimeType: mp4.mimeType ?? "video/mp4",
+      width: mp4.width ?? undefined,
+      height: mp4.height ?? undefined,
+    };
+  }
+
+  if (node.originalSource?.url) {
+    return {
+      url: node.originalSource.url,
+      mimeType: node.originalSource.mimeType ?? "video/mp4",
+      width: node.originalSource.width ?? undefined,
+      height: node.originalSource.height ?? undefined,
+    };
+  }
+
+  const first = sources.find((source) => source.url);
+  if (first?.url) {
+    return {
+      url: first.url,
+      mimeType: first.mimeType ?? "video/mp4",
+      width: first.width ?? undefined,
+      height: first.height ?? undefined,
+    };
+  }
+
+  return null;
+}
+
+function toMediaItem(node: FileNode): MediaItem | null {
+  const video = pickVideoSource(node);
+  if (video) {
+    return {
+      id: node.id,
+      url: video.url,
+      alt: node.alt || undefined,
+      title: node.alt || undefined,
+      mimeType: video.mimeType,
+      type: "video",
+      width: video.width,
+      height: video.height,
+    };
+  }
+
+  const imageUrl = node.image?.url;
+  if (imageUrl) {
+    return {
+      id: node.id,
+      url: imageUrl,
+      alt: node.image?.altText || node.alt || undefined,
+      title: node.alt || undefined,
+      mimeType: node.mimeType || "image/jpeg",
+      type: "image",
+      width: node.image?.width ?? undefined,
+      height: node.image?.height ?? undefined,
+    };
+  }
+
+  const fileUrl = node.url;
+  if (!fileUrl) {
     return null;
   }
 
+  const mimeType = node.mimeType || "application/octet-stream";
   return {
     id: node.id,
-    url,
-    alt: node.image?.altText || node.alt || undefined,
+    url: fileUrl,
+    alt: node.alt || undefined,
     title: node.alt || undefined,
-    mimeType: node.mimeType || undefined,
-    width: node.image?.width ?? undefined,
-    height: node.image?.height ?? undefined,
+    mimeType,
+    type: isVideoMimeType(mimeType) ? "video" : "file",
   };
 }
 
@@ -230,17 +308,23 @@ export async function listImages(
 async function pollFileUntilReady(
   admin: ShopifyAdminClient,
   id: string,
-  { attempts = 10, delayMs = 600 }: { attempts?: number; delayMs?: number } = {},
+  {
+    attempts = 10,
+    delayMs = 600,
+    isVideo = false,
+  }: { attempts?: number; delayMs?: number; isVideo?: boolean } = {},
 ): Promise<MediaItem | null> {
-  for (let i = 0; i < attempts; i += 1) {
+  const maxAttempts = isVideo ? Math.max(attempts, 30) : attempts;
+  const waitMs = isVideo ? Math.max(delayMs, 1000) : delayMs;
+
+  for (let i = 0; i < maxAttempts; i += 1) {
     const response = await admin.graphql(FILE_STATUS_QUERY, {
       variables: { id },
     });
     const json = await response.json();
-    const node = json.data?.node;
+    const node = json.data?.node as FileNode | undefined;
 
     if (node) {
-      // FAILED — stop early; the CDN url will never appear.
       if (node.fileStatus === "FAILED") {
         return null;
       }
@@ -251,7 +335,7 @@ async function pollFileUntilReady(
       }
     }
 
-    await new Promise((resolve) => setTimeout(resolve, delayMs));
+    await new Promise((resolve) => setTimeout(resolve, waitMs));
   }
 
   return null;
@@ -278,7 +362,9 @@ async function uploadToStagedTarget(
   });
 
   if (!uploadResponse.ok) {
-    throw new Error(`Failed to upload file to Shopify storage (${uploadResponse.status}).`);
+    throw new Error(
+      `Failed to upload file to Shopify storage (${uploadResponse.status}).`,
+    );
   }
 }
 
@@ -287,12 +373,10 @@ export async function uploadImage(
   shop: string,
   file: File,
 ): Promise<MediaItem> {
-  const mimeType = file.type || "application/octet-stream";
-  const isVideo = mimeType.startsWith("video/");
-  // In this CMS flow we persist non-image uploads as GenericFile so we always
-  // get a stable public URL from `url`.
-  const stagedResource = isVideo ? "FILE" : "IMAGE";
-  const contentType = isVideo ? "FILE" : "IMAGE";
+  const mimeType = inferMimeType(file);
+  const isVideo = isVideoMimeType(mimeType);
+  const stagedResource = isVideo ? "VIDEO" : "IMAGE";
+  const contentType = isVideo ? "VIDEO" : "IMAGE";
 
   const stagedResponse = await admin.graphql(STAGED_UPLOADS_MUTATION, {
     variables: {
@@ -333,21 +417,25 @@ export async function uploadImage(
   });
 
   const createJson = await createResponse.json();
-  const createdFile = createJson.data?.fileCreate?.files?.[0];
+  const createdFile = createJson.data?.fileCreate?.files?.[0] as
+    | FileNode
+    | undefined;
   const createErrors = createJson.data?.fileCreate?.userErrors ?? [];
 
   if (!createdFile || createErrors.length > 0) {
     throw new Error(createErrors[0]?.message || "Failed to create Shopify file.");
   }
 
-  // Image processing is async — the url is usually absent on this first
-  // response. Fall back to polling the node by id until the CDN url lands.
   const item =
     toMediaItem(createdFile) ??
-    (await pollFileUntilReady(admin, createdFile.id));
+    (await pollFileUntilReady(admin, createdFile.id, { isVideo }));
 
   if (!item) {
-    throw new Error("Shopify file was created without a public URL.");
+    throw new Error(
+      isVideo
+        ? "Video was uploaded but is still processing. Try again in a moment."
+        : "Shopify file was created without a public URL.",
+    );
   }
 
   await createMediaRecord(shop, {

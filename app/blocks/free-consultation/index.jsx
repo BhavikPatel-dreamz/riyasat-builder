@@ -41,7 +41,10 @@ function FreeConsultationIcon() {
 }
 
 const isVideo = (media) =>
-  typeof media?.type === 'string' && media.type.startsWith('video');
+  media?.type === 'video' ||
+  (typeof media?.type === 'string' && media.type.startsWith('video/')) ||
+  (typeof media?.mimeType === 'string' && media.mimeType.startsWith('video/')) ||
+  (typeof media?.mime === 'string' && media.mime.startsWith('video/'));
 
 function FreeConsultationMedia({ media, hasMedia, onSelectMedia }) {
   if (hasMedia) {

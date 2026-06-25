@@ -18,6 +18,7 @@ import { useEffect, useRef, useState } from 'gutenberg-block-kit/wp/element';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
 import { contentTabStyle } from '../inspector-shared';
 import { STANDARD_VIDEO_BLOCK, RIYASAT_CATEGORY } from '../constants';
+import { SHOPIFY_VIDEO_ACCEPT, uploadCmsMediaFile } from '../media-upload';
 
 const DEFAULT_HEIGHT = 300;
 
@@ -32,20 +33,7 @@ function getPickedMediaUrl(media) {
 }
 
 async function uploadMediaFile(file) {
-  const body = new FormData();
-  body.append('file', file);
-
-  const response = await fetch('/api/cms/media', {
-    method: 'POST',
-    body,
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.error || 'Failed to upload media.');
-  }
-
-  return response.json();
+  return uploadCmsMediaFile(file);
 }
 
 function StandardVideoIcon() {
@@ -186,7 +174,7 @@ export function registerStandardVideo() {
                   <input
                     ref={videoFileRef}
                     type="file"
-                    accept="video/*"
+                    accept={SHOPIFY_VIDEO_ACCEPT}
                     style={{ display: 'none' }}
                     onChange={onVideoFileChange}
                   />

@@ -3,6 +3,7 @@ import { ClientBlockEditor } from "gutenberg-block-kit/editor-client";
 // constants.ts holds plain strings only — safe to import during SSR. The block
 // modules (which pull the @wordpress/emotion runtime) are loaded client-only in
 // the effect below.
+import { withInferredMimeType } from "../../lib/media-mime";
 import { RIYASAT_BLOCKS } from "../../blocks/constants";
 import { cmsEditorActions } from "./actionsConfig";
 import { CmsEditorPageContext } from "./CmsEditorPageContext";
@@ -396,7 +397,7 @@ export function CmsEditorShell({
 
   const uploadImage = useCallback(async (file: File) => {
     const body = new FormData();
-    body.append("file", file);
+    body.append("file", withInferredMimeType(file));
 
     const response = await fetch("/api/cms/media", {
       method: "POST",
@@ -405,7 +406,7 @@ export function CmsEditorShell({
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
-      throw new Error(error.error || "Failed to upload image.");
+      throw new Error(error.error || "Failed to upload media.");
     }
 
     return response.json();
