@@ -57,6 +57,11 @@
   display: none !important;
 }
 
+/* Hidden host for in-editor route sync (must render inside EditorProvider). */
+.cms-editor-shell .header-custom-btn.cms-route-sync-host {
+  display: none !important;
+}
+
 .cms-page-switcher {
   width: 100%;
   max-width: 360px;

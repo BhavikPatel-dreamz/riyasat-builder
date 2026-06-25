@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import {
   FaCheck,
   FaChevronDown,
@@ -49,6 +49,10 @@ const TYPE_SINGULAR: Record<ContentType, string> = {
   footer: "Footer",
 };
 
+function buildAppUrl(path: string, search: string) {
+  return path.includes("?") ? path : `${path}${search}`;
+}
+
 function useHeaderCenterMount() {
   const [mountNode, setMountNode] = useState<HTMLElement | null>(null);
 
@@ -87,8 +91,7 @@ export function CmsPageSwitcher({
   pages: initialPages = [],
 }: CmsPageSwitcherProps) {
   const navigate = useNavigate();
-  const currentSearch =
-    typeof window !== "undefined" ? window.location.search || "" : "";
+  const location = useLocation();
   const mountNode = useHeaderCenterMount();
   const [pages, setPages] = useState<CmsPageListItem[]>(initialPages);
   const [loading, setLoading] = useState(initialPages.length === 0);
@@ -220,25 +223,31 @@ export function CmsPageSwitcher({
     };
   }, [open]);
 
+  const goTo = useCallback(
+    (path: string) => {
+      setOpen(false);
+      navigate(buildAppUrl(path, location.search));
+    },
+    [location.search, navigate],
+  );
+
   const navigateToPage = useCallback(
     (pageId: string) => {
       if (pageId === currentPageId) {
         setOpen(false);
         return;
       }
-      setOpen(false);
-      navigate(`/app/${pageId}${currentSearch}`);
+      goTo(`/app/${pageId}`);
     },
-    [currentPageId, currentSearch, navigate],
+    [currentPageId, goTo],
   );
 
   const createNew = useCallback(() => {
-    setOpen(false);
-    const params = new URLSearchParams(currentSearch);
+    const params = new URLSearchParams(location.search);
     params.set("type", contentType);
     const search = params.toString();
-    navigate(`/app/new${search ? `?${search}` : ""}`);
-  }, [contentType, currentSearch, navigate]);
+    goTo(`/app/new${search ? `?${search}` : ""}`);
+  }, [contentType, goTo, location.search]);
 
   if (!mountNode) {
     return null;
@@ -315,7 +324,10 @@ export function CmsPageSwitcher({
                       className={`cms-page-switcher__item${
                         isActive ? " is-active" : ""
                       }`}
-                      onClick={() => navigateToPage(page.id)}
+                      onMouseDown={(event) => {
+                        event.preventDefault();
+                        navigateToPage(page.id);
+                      }}
                     >
                       <span className="cms-page-switcher__item-icon" aria-hidden>
                         <FaFileAlt />
@@ -349,7 +361,10 @@ export function CmsPageSwitcher({
               <button
                 type="button"
                 className="cms-page-switcher__create"
-                onClick={createNew}
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  createNew();
+                }}
               >
                 <FaPlus aria-hidden />
                 <span>Create new {TYPE_SINGULAR[contentType].toLowerCase()}</span>

@@ -5,6 +5,8 @@ import { ClientBlockEditor } from "gutenberg-block-kit/editor-client";
 // the effect below.
 import { RIYASAT_BLOCKS } from "../../blocks/constants";
 import { cmsEditorActions } from "./actionsConfig";
+import { CmsEditorPageContext } from "./CmsEditorPageContext";
+import { CmsEditorRouteSyncHost } from "./CmsEditorRouteSyncHost";
 import { CmsPageSwitcher, type CmsPageListItem } from "./CmsPageSwitcher";
 import { FaCog, FaSearch } from "react-icons/fa";
 
@@ -190,6 +192,10 @@ export function CmsEditorShell({
     pageId,
   );
 
+  useEffect(() => {
+    setCurrentPageId(pageId);
+  }, [pageId]);
+
   // onSave is captured by the editor at mount; read live meta via a ref so the
   // latest field values are included no matter when the user clicks Save. The
   // page id is read the same way so the first-save id is seen by later saves.
@@ -209,8 +215,42 @@ export function CmsEditorShell({
   }, [pageTitle]);
 
   useEffect(() => {
+    setMeta({
+      slug: initialSlug,
+      description: initialDescription,
+      seoTitle: initialSeoTitle,
+      seoDescription: initialSeoDescription,
+      ogImage: initialOgImage,
+      keywords: initialKeywords,
+      hideHeader: initialHideHeader,
+      showPageTitle: initialShowPageTitle,
+      backgroundColor: initialBackgroundColor,
+      renderingType: initialRenderingType,
+      headerId: initialHeaderId,
+      footerId: initialFooterId,
+      stickyHeaderId: initialStickyHeaderId,
+      stickyFooterId: initialStickyFooterId,
+    });
     setPageTitle(initialTitle);
-  }, [initialTitle]);
+    setMetaError(null);
+  }, [
+    pageId,
+    initialSlug,
+    initialDescription,
+    initialSeoTitle,
+    initialSeoDescription,
+    initialOgImage,
+    initialKeywords,
+    initialHideHeader,
+    initialShowPageTitle,
+    initialBackgroundColor,
+    initialRenderingType,
+    initialHeaderId,
+    initialFooterId,
+    initialStickyHeaderId,
+    initialStickyFooterId,
+    initialTitle,
+  ]);
 
   const syncKitPageTitle = useCallback((title: string) => {
     requestAnimationFrame(() => {
@@ -425,6 +465,14 @@ export function CmsEditorShell({
   // headers/footers carry neither layout nor SEO fields).
   const customButtons = [
     {
+      id: "cms-route-sync",
+      icon: <CmsEditorRouteSyncHost />,
+      title: "",
+      className: "cms-route-sync-host",
+      position: "start" as const,
+      onClick: () => {},
+    },
+    {
       id: "page-settings",
       icon: <FaCog />,
       title: `${typeLabel} settings`,
@@ -444,7 +492,14 @@ export function CmsEditorShell({
       : []),
   ];
 
+  const editorPageContext = {
+    pageId,
+    initialTitle,
+    initialContent,
+  };
+
   return (
+    <CmsEditorPageContext.Provider value={editorPageContext}>
     <div className="cms-editor-shell">
       {/* Blocking overlay while a save is in flight, so the merchant knows the
           builder is persisting and doesn't navigate away mid-save. */}
@@ -769,7 +824,7 @@ export function CmsEditorShell({
       ) : null}
 
       <CmsPageSwitcher
-        currentPageId={currentPageId}
+        currentPageId={pageId}
         contentType={contentType}
         currentTitle={pageTitle}
         pages={pages}
@@ -818,5 +873,6 @@ export function CmsEditorShell({
         }
       />
     </div>
+    </CmsEditorPageContext.Provider>
   );
 }
