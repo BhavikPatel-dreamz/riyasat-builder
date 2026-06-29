@@ -1,0 +1,70 @@
+.riyasat-men-women-tabs-editor {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.riyasat-men-women-tabs {
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+
+.riyasat-men-women-tabs__track {
+  width: 100%;
+}
+
+.riyasat-men-women-tabs-editor .riyasat-men-women-tabs__track .block-editor-inner-blocks {
+  min-width: 0;
+}
+
+.riyasat-men-women-tabs-editor .riyasat-men-women-tabs__track .block-editor-block-list__layout {
+  display: flex !important;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.riyasat-men-women-tabs-editor .riyasat-men-women-tabs__track .block-editor-block-list__layout > *,
+.riyasat-men-women-tabs-editor .riyasat-men-women-tabs__track .block-editor-block-list__block {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+}
+
+.riyasat-men-women-tab-item-editor {
+  width: 100%;
+}
+
+.riyasat-men-women-tab-item-editor__button {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  cursor: default;
+  box-sizing: border-box;
+}
+
+.riyasat-men-women-tabs__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  box-sizing: border-box;
+}
+
+.riyasat-men-women-tabs__item {
+  flex: 1 1 0;
+}

@@ -21,6 +21,7 @@ import { registerCategoriesScroller } from "./categories-scroller";
 import { registerHeroBannerSlider } from "./hero-banner-slider";
 import { registerOccasionCardsGrid } from "./occasion-cards-grid";
 import { registerReadyToShipBanner } from "./ready-to-ship-banner";
+import { registerMenWomenTabs } from "./men-women-tabs";
 import { registerStandardBanner } from "./banner";
 import { registerStandardVideo } from "./video";
 import { registerStandardSpacer } from "./spacer";
@@ -66,6 +67,7 @@ export function registerRiyasatBlocks() {
     registerHeroBannerSlider();
     registerOccasionCardsGrid();
     registerReadyToShipBanner();
+    registerMenWomenTabs();
     registerStandardBanner();
     registerStandardVideo();
     registerStandardSpacer();

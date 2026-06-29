@@ -44,6 +44,8 @@ export const OCCASION_CARDS_GRID_BLOCK = "core/occasion-cards-grid";
 export const OCCASION_CARD_ITEM_BLOCK = "core/occasion-card-item";
 
 export const READY_TO_SHIP_BANNER_BLOCK = "core/ready-to-ship-banner";
+export const MEN_WOMEN_TABS_BLOCK = "core/men-women-tabs";
+export const MEN_WOMEN_TAB_ITEM_BLOCK = "core/men-women-tab-item";
 export const STANDARD_BANNER_BLOCK = "standard/banner";
 export const STANDARD_VIDEO_BLOCK = "standard/video";
 export const STANDARD_SPACER_BLOCK = "standard/spacer";
@@ -83,6 +85,8 @@ export const RIYASAT_BLOCKS = [
   OCCASION_CARDS_GRID_BLOCK,
   OCCASION_CARD_ITEM_BLOCK,
   READY_TO_SHIP_BANNER_BLOCK,
+  MEN_WOMEN_TABS_BLOCK,
+  MEN_WOMEN_TAB_ITEM_BLOCK,
   STANDARD_BANNER_BLOCK,
   STANDARD_VIDEO_BLOCK,
   STANDARD_SPACER_BLOCK,
