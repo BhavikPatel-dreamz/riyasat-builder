@@ -18,6 +18,7 @@ import "../../blocks/riyasat/occasion-cards-grid.css";
 import "../../blocks/riyasat/ready-to-ship-banner.css";
 import "../../blocks/riyasat/selected-products.css";
 import { BlockEditor } from "gutenberg-block-kit/editor";
+import { withInferredMimeType } from "../../lib/media-mime";
 
 type CmsEditorProps = {
   pageId?: string;
@@ -126,7 +127,7 @@ export function CmsEditor({
 
   const uploadImage = useCallback(async (file: File) => {
     const body = new FormData();
-    body.append("file", file);
+    body.append("file", withInferredMimeType(file));
 
     const response = await fetch("/api/cms/media", {
       method: "POST",

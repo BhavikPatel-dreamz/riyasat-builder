@@ -17,7 +17,6 @@ import { useEffect, useRef, useState } from 'gutenberg-block-kit/wp/element';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
 import { contentTabStyle } from '../inspector-shared';
 import { STANDARD_VIDEO_BLOCK, RIYASAT_CATEGORY } from '../constants';
-import { SHOPIFY_VIDEO_ACCEPT, uploadCmsMediaFile } from '../media-upload';
 
 const DEFAULT_HEIGHT = 300;
 
@@ -31,8 +30,11 @@ function getPickedMediaUrl(media) {
   );
 }
 
-async function uploadMediaFile(file) {
-  return uploadCmsMediaFile(file);
+function getVideoAttributesFromMedia(media) {
+  return {
+    videoUrl: getPickedMediaUrl(media),
+    height: media?.height > 0 ? media.height : DEFAULT_HEIGHT,
+  };
 }
 
 function StandardVideoIcon() {
@@ -88,9 +90,6 @@ export function registerStandardVideo() {
         action,
       } = attributes;
       const blockProps = useBlockProps({ className: 'riyasat-standard-video-editor' });
-      const [uploadingVideo, setUploadingVideo] = useState(false);
-      const [videoError, setVideoError] = useState('');
-      const videoFileRef = useRef(null);
       const videoElRef = useRef(null);
       const [isPlaying, setIsPlaying] = useState(false);
 
@@ -107,25 +106,6 @@ export function registerStandardVideo() {
           maybePromise.catch(() => {});
         }
       }, [isPlaying]);
-
-      async function onVideoFileChange(event) {
-        const file = event.target.files?.[0];
-        event.target.value = '';
-        if (!file) return;
-
-        setUploadingVideo(true);
-        setVideoError('');
-        try {
-          const uploaded = await uploadMediaFile(file);
-          const nextUrl = getPickedMediaUrl(uploaded);
-          if (!nextUrl) throw new Error('Upload succeeded but URL was missing.');
-          setAttributes({ videoUrl: nextUrl });
-        } catch (error) {
-          setVideoError(error instanceof Error ? error.message : 'Failed to upload video.');
-        } finally {
-          setUploadingVideo(false);
-        }
-      }
 
       return (
         <>
@@ -166,41 +146,36 @@ export function registerStandardVideo() {
                   />
                 </MediaUploadCheck>
 
-                <div style={{ marginBottom: '12px' }}>
-                  <Button
-                    onClick={() => videoFileRef.current?.click()}
-                    variant="secondary"
-                    style={{ width: '100%' }}
-                    disabled={uploadingVideo}
-                  >
-                    {uploadingVideo
-                      ? 'Uploading video...'
-                      : videoUrl
-                        ? 'Change video'
-                        : 'Add video'}
-                  </Button>
-                  <input
-                    ref={videoFileRef}
-                    type="file"
-                    accept={SHOPIFY_VIDEO_ACCEPT}
-                    style={{ display: 'none' }}
-                    onChange={onVideoFileChange}
+                <MediaUploadCheck>
+                  <MediaUpload
+                    onSelect={(media) =>
+                      setAttributes(getVideoAttributesFromMedia(media))
+                    }
+                    allowedTypes={['video']}
+                    title="Select video"
+                    render={({ open }) => (
+                      <div style={{ marginBottom: '12px' }}>
+                        <Button onClick={open} variant="secondary" style={{ width: '100%' }}>
+                          {videoUrl ? 'Change video' : 'Add video'}
+                        </Button>
+                        {videoUrl ? (
+                          <Button
+                            onClick={() =>
+                              setAttributes({
+                                videoUrl: '',
+                                height: DEFAULT_HEIGHT,
+                              })
+                            }
+                            variant="link"
+                            isDestructive
+                          >
+                            Remove video
+                          </Button>
+                        ) : null}
+                      </div>
+                    )}
                   />
-                  {videoError ? (
-                    <p style={{ margin: '6px 0 0', color: '#b91c1c', fontSize: '12px' }}>
-                      {videoError}
-                    </p>
-                  ) : null}
-                  {videoUrl ? (
-                    <Button
-                      onClick={() => setAttributes({ videoUrl: '' })}
-                      variant="link"
-                      isDestructive
-                    >
-                      Remove video
-                    </Button>
-                  ) : null}
-                </div>
+                </MediaUploadCheck>
 
                 <RadioControl
                   label="Resize mode"
