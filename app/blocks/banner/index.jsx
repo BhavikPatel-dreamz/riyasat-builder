@@ -108,7 +108,11 @@ export function registerStandardBanner() {
                 <MediaUploadCheck>
                   <MediaUpload
                     onSelect={(media) =>
-                      setAttributes({ imageUrl: media?.url ?? '' })
+                      setAttributes({
+                        imageUrl: media?.url ?? '',
+                        imageWidth: media?.width ?? 0,
+                        imageHeight: media?.height ?? 0,
+                      })
                     }
                     allowedTypes={['image']}
                     render={({ open }) => (
@@ -122,7 +126,13 @@ export function registerStandardBanner() {
                         </Button>
                         {imageUrl ? (
                           <Button
-                            onClick={() => setAttributes({ imageUrl: '' })}
+                            onClick={() =>
+                              setAttributes({
+                                imageUrl: '',
+                                imageWidth: 0,
+                                imageHeight: 0,
+                              })
+                            }
                             variant="link"
                             isDestructive
                             style={{ marginTop: '4px' }}
