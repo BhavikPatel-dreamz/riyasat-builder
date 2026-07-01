@@ -18,7 +18,7 @@ import {
   Button,
 } from 'gutenberg-block-kit/wp/components';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
-import { contentTabStyle, ImagePicker, useChildBlocks } from '../inspector-shared';
+import { contentTabStyle, ImagePicker, imageAttributesFromMedia, clearImageAttributes, useChildBlocks } from '../inspector-shared';
 import {
   OCCASION_CARDS_GRID_BLOCK,
   OCCASION_CARD_ITEM_BLOCK,
@@ -64,8 +64,8 @@ function OccasionCardFields({ attributes, onChange }) {
     <>
       <ImagePicker
         imageUrl={imageUrl}
-        onSelect={(url) => onChange({ imageUrl: url })}
-        onClear={() => onChange({ imageUrl: '' })}
+        onSelect={(media) => onChange(imageAttributesFromMedia(media))}
+        onClear={() => onChange(clearImageAttributes())}
       />
       <TextControl
         label="Title"
@@ -117,7 +117,7 @@ function OccasionCardPreview({ attributes, setAttributes }) {
         {imageUrl ? (
           <MediaUploadCheck>
             <MediaUpload
-              onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+              onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
               allowedTypes={['image']}
               render={({ open }) => (
                 <img
@@ -137,7 +137,7 @@ function OccasionCardPreview({ attributes, setAttributes }) {
         ) : (
           <MediaUploadCheck>
             <MediaUpload
-              onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+              onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
               allowedTypes={['image']}
               render={({ open }) => (
                 <button
@@ -194,6 +194,8 @@ function registerOccasionCardItem() {
     supports: { html: false, reusable: false },
     attributes: {
       imageUrl: { type: 'string', default: '' },
+      imageWidth: { type: 'number', default: 0 },
+      imageHeight: { type: 'number', default: 0 },
       title: { type: 'string', default: '' },
       description: { type: 'string', default: '' },
       buttonText: { type: 'string', default: '' },

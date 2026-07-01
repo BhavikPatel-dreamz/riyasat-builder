@@ -122,7 +122,12 @@ export function registerFreeConsultation() {
 
       function onSelectMedia(selected) {
         setAttributes({
-          media: { url: selected?.url ?? '', type: selected?.mime ?? '' },
+          media: {
+            url: selected?.url ?? '',
+            type: selected?.mime ?? '',
+            width: selected?.width ?? 0,
+            height: selected?.height ?? 0,
+          },
         });
       }
 

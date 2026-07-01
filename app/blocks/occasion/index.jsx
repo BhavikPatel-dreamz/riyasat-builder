@@ -23,7 +23,7 @@ import {
   OCCASION_TAB_ITEM_BLOCK,
   RIYASAT_CATEGORY,
 } from '../constants';
-import { contentTabStyle, ImagePicker, useChildBlocks, useTrackPagination, SliderPaginationDots, stopPaginationEvent } from '../inspector-shared';
+import { contentTabStyle, ImagePicker, imageAttributesFromMedia, clearImageAttributes, useChildBlocks, useTrackPagination, SliderPaginationDots, stopPaginationEvent } from '../inspector-shared';
 
 const DEFAULT_BACKGROUND = '#f5f5f5';
 const OccasionActiveTabContext = createContext(0);
@@ -78,6 +78,8 @@ function registerOccasionTabItem() {
     supports: { html: false, reusable: false },
     attributes: {
       imageUrl: { type: 'string', default: '' },
+      imageWidth: { type: 'number', default: 0 },
+      imageHeight: { type: 'number', default: 0 },
       label: { type: 'string', default: '' },
       action: { type: 'object', default: {} },
     },
@@ -95,8 +97,8 @@ function registerOccasionTabItem() {
               <PanelBody title="Item" initialOpen={true}>
                 <ImagePicker
                   imageUrl={imageUrl}
-                  onSelect={(url) => setAttributes({ imageUrl: url })}
-                  onClear={() => setAttributes({ imageUrl: '' })}
+                  onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
+                  onClear={() => setAttributes(clearImageAttributes())}
                 />
                 <TextControl
                   label="Label"
@@ -205,10 +207,15 @@ function registerOccasionTab() {
                   >
                     <ImagePicker
                       imageUrl={imageUrl}
-                      onSelect={(url) =>
-                        updateBlockAttributes(block.clientId, { imageUrl: url })
+                      onSelect={(media) =>
+                        updateBlockAttributes(
+                          block.clientId,
+                          imageAttributesFromMedia(media),
+                        )
                       }
-                      onClear={() => updateBlockAttributes(block.clientId, { imageUrl: '' })}
+                      onClear={() =>
+                        updateBlockAttributes(block.clientId, clearImageAttributes())
+                      }
                     />
                     <TextControl
                       label="Label"

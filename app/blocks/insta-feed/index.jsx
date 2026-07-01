@@ -17,7 +17,7 @@ import {
   Button,
 } from 'gutenberg-block-kit/wp/components';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
-import { contentTabStyle, ImagePicker, useChildBlocks } from '../inspector-shared';
+import { contentTabStyle, ImagePicker, imageAttributesFromMedia, clearImageAttributes, useChildBlocks } from '../inspector-shared';
 import {
   INSTA_FEED_BLOCK,
   INSTA_FEED_ITEM_BLOCK,
@@ -66,6 +66,8 @@ function registerInstaFeedItem() {
     supports: { html: false, reusable: false },
     attributes: {
       imageUrl: { type: 'string', default: '' },
+      imageWidth: { type: 'number', default: 0 },
+      imageHeight: { type: 'number', default: 0 },
       action: { type: 'object', default: {} },
     },
 
@@ -82,8 +84,8 @@ function registerInstaFeedItem() {
               <PanelBody title="Tile" initialOpen={true}>
                 <ImagePicker
                   imageUrl={imageUrl}
-                  onSelect={(url) => setAttributes({ imageUrl: url })}
-                  onClear={() => setAttributes({ imageUrl: '' })}
+                  onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
+                  onClear={() => setAttributes(clearImageAttributes())}
                 />
                 <ActionBuilder
                   label="Tap action"
@@ -98,7 +100,7 @@ function registerInstaFeedItem() {
             {imageUrl ? (
               <MediaUploadCheck>
                 <MediaUpload
-                  onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+                  onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
                   allowedTypes={['image']}
                   render={({ open }) => (
                     <img
@@ -118,7 +120,7 @@ function registerInstaFeedItem() {
             ) : (
               <MediaUploadCheck>
                 <MediaUpload
-                  onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+                  onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
                   allowedTypes={['image']}
                   render={({ open }) => (
                     <button
@@ -206,10 +208,15 @@ function registerInstaFeedParent() {
                   >
                     <ImagePicker
                       imageUrl={imageUrl}
-                      onSelect={(url) =>
-                        updateBlockAttributes(block.clientId, { imageUrl: url })
+                      onSelect={(media) =>
+                        updateBlockAttributes(
+                          block.clientId,
+                          imageAttributesFromMedia(media),
+                        )
                       }
-                      onClear={() => updateBlockAttributes(block.clientId, { imageUrl: '' })}
+                      onClear={() =>
+                        updateBlockAttributes(block.clientId, clearImageAttributes())
+                      }
                     />
                     <ActionBuilder
                       label="Tap action"

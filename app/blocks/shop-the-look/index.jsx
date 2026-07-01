@@ -20,7 +20,7 @@ import {
   Button,
 } from 'gutenberg-block-kit/wp/components';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
-import { contentTabStyle, ImagePicker, useChildBlocks, useSliderPagination, SliderPaginationDots } from '../inspector-shared';
+import { contentTabStyle, ImagePicker, imageAttributesFromMedia, clearImageAttributes, useChildBlocks, useSliderPagination, SliderPaginationDots } from '../inspector-shared';
 import {
   SHOP_THE_LOOK_BLOCK,
   SHOP_THE_LOOK_ITEM_BLOCK,
@@ -61,6 +61,8 @@ function registerShopTheLookItem() {
     supports: { html: false, reusable: false },
     attributes: {
       thumbnailUrl: { type: 'string', default: '' },
+      imageWidth: { type: 'number', default: 0 },
+      imageHeight: { type: 'number', default: 0 },
       videoUrl: { type: 'string', default: '' },
       buttonText: { type: 'string', default: '' },
       action: { type: 'object', default: {} },
@@ -81,8 +83,10 @@ function registerShopTheLookItem() {
                   imageUrl={thumbnailUrl}
                   addLabel="Add thumbnail"
                   changeLabel="Change thumbnail"
-                  onSelect={(url) => setAttributes({ thumbnailUrl: url })}
-                  onClear={() => setAttributes({ thumbnailUrl: '' })}
+                  onSelect={(media) =>
+                    setAttributes(imageAttributesFromMedia(media, 'thumbnailUrl'))
+                  }
+                  onClear={() => setAttributes(clearImageAttributes('thumbnailUrl'))}
                 />
                 <MediaUploadCheck>
                   <MediaUpload
@@ -132,7 +136,7 @@ function registerShopTheLookItem() {
               <MediaUploadCheck>
                 <MediaUpload
                   onSelect={(media) =>
-                    setAttributes({ thumbnailUrl: media?.url ?? '' })
+                    setAttributes(imageAttributesFromMedia(media, 'thumbnailUrl'))
                   }
                   allowedTypes={['image']}
                   render={({ open }) => (
@@ -250,11 +254,17 @@ function registerShopTheLookParent() {
                       imageUrl={thumbnailUrl}
                       addLabel="Add thumbnail"
                       changeLabel="Change thumbnail"
-                      onSelect={(url) =>
-                        updateBlockAttributes(block.clientId, { thumbnailUrl: url })
+                      onSelect={(media) =>
+                        updateBlockAttributes(
+                          block.clientId,
+                          imageAttributesFromMedia(media, 'thumbnailUrl'),
+                        )
                       }
                       onClear={() =>
-                        updateBlockAttributes(block.clientId, { thumbnailUrl: '' })
+                        updateBlockAttributes(
+                          block.clientId,
+                          clearImageAttributes('thumbnailUrl'),
+                        )
                       }
                     />
                     <MediaUploadCheck>

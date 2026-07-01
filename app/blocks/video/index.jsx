@@ -9,7 +9,6 @@ import {
 } from 'gutenberg-block-kit/wp/block-editor';
 import {
   PanelBody,
-  TextControl,
   ToggleControl,
   RadioControl,
   Button,
@@ -136,7 +135,11 @@ export function registerStandardVideo() {
                 <MediaUploadCheck>
                   <MediaUpload
                     onSelect={(media) =>
-                      setAttributes({ thumbnailUrl: getPickedMediaUrl(media) })
+                      setAttributes({
+                        thumbnailUrl: getPickedMediaUrl(media),
+                        height:
+                          media?.height > 0 ? media.height : DEFAULT_HEIGHT,
+                      })
                     }
                     allowedTypes={['image']}
                     render={({ open }) => (
@@ -146,7 +149,12 @@ export function registerStandardVideo() {
                         </Button>
                         {thumbnailUrl ? (
                           <Button
-                            onClick={() => setAttributes({ thumbnailUrl: '' })}
+                            onClick={() =>
+                              setAttributes({
+                                thumbnailUrl: '',
+                                height: DEFAULT_HEIGHT,
+                              })
+                            }
                             variant="link"
                             isDestructive
                           >
@@ -202,15 +210,6 @@ export function registerStandardVideo() {
                     { label: 'Contain', value: 'contain' },
                   ]}
                   onChange={(value) => setAttributes({ resizeMode: value })}
-                />
-
-                <TextControl
-                  label="Height"
-                  type="number"
-                  value={String(height ?? DEFAULT_HEIGHT)}
-                  onChange={(value) =>
-                    setAttributes({ height: Number.parseInt(value || `${DEFAULT_HEIGHT}`, 10) })
-                  }
                 />
 
                 <ToggleControl

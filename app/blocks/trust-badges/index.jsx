@@ -13,7 +13,7 @@ import {
 } from 'gutenberg-block-kit/wp/block-editor';
 import { PanelBody, TextControl, TextareaControl, Button } from 'gutenberg-block-kit/wp/components';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
-import { contentTabStyle, ImagePicker, useChildBlocks } from '../inspector-shared';
+import { contentTabStyle, ImagePicker, imageAttributesFromMedia, clearImageAttributes, useChildBlocks } from '../inspector-shared';
 import {
   TRUST_BADGES_BLOCK,
   TRUST_BADGES_ITEM_BLOCK,
@@ -49,8 +49,8 @@ function TrustBadgeFields({ attributes, onChange }) {
         imageUrl={icon}
         addLabel="Add icon"
         changeLabel="Change icon"
-        onSelect={(url) => onChange({ icon: url })}
-        onClear={() => onChange({ icon: '' })}
+        onSelect={(media) => onChange(imageAttributesFromMedia(media, 'icon'))}
+        onClear={() => onChange(clearImageAttributes('icon'))}
       />
       <TextControl
         label="Label"
@@ -98,6 +98,8 @@ function registerTrustBadgesItem() {
     supports: { html: false, reusable: false },
     attributes: {
       icon: { type: 'string', default: '' },
+      imageWidth: { type: 'number', default: 0 },
+      imageHeight: { type: 'number', default: 0 },
       label: { type: 'string', default: '' },
       popupTitle: { type: 'string', default: '' },
       popupDescription: { type: 'string', default: '' },
@@ -128,7 +130,7 @@ function registerTrustBadgesItem() {
             {icon ? (
               <MediaUploadCheck>
                 <MediaUpload
-                  onSelect={(media) => setAttributes({ icon: media?.url ?? '' })}
+                  onSelect={(media) => setAttributes(imageAttributesFromMedia(media, 'icon'))}
                   allowedTypes={['image']}
                   render={({ open }) => (
                     <img
@@ -148,7 +150,7 @@ function registerTrustBadgesItem() {
             ) : (
               <MediaUploadCheck>
                 <MediaUpload
-                  onSelect={(media) => setAttributes({ icon: media?.url ?? '' })}
+                  onSelect={(media) => setAttributes(imageAttributesFromMedia(media, 'icon'))}
                   allowedTypes={['image']}
                   render={({ open }) => (
                     <button

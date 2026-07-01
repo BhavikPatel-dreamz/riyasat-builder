@@ -241,6 +241,8 @@ export function registerReadyToShipBanner() {
           media: {
             url,
             type: resolveMediaType({ ...selected, url }),
+            width: selected?.width ?? 0,
+            height: selected?.height ?? 0,
           },
         });
       }

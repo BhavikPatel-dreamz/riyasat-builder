@@ -20,7 +20,7 @@ import {
   Button,
 } from 'gutenberg-block-kit/wp/components';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
-import { contentTabStyle, ImagePicker, useChildBlocks, useSliderPagination, SliderPaginationDots } from '../inspector-shared';
+import { contentTabStyle, ImagePicker, imageAttributesFromMedia, clearImageAttributes, useChildBlocks, useSliderPagination, SliderPaginationDots } from '../inspector-shared';
 import {
   EDITORS_PICK_BLOCK,
   EDITORS_PICK_ITEM_BLOCK,
@@ -63,6 +63,8 @@ function registerEditorsPickItem() {
       title: { type: 'string', default: '' },
       description: { type: 'string', default: '' },
       imageUrl: { type: 'string', default: '' },
+      imageWidth: { type: 'number', default: 0 },
+      imageHeight: { type: 'number', default: 0 },
       buttonText: { type: 'string', default: '' },
       action: { type: 'object', default: {} },
     },
@@ -80,8 +82,8 @@ function registerEditorsPickItem() {
               <PanelBody title="Card" initialOpen={true}>
                 <ImagePicker
                   imageUrl={imageUrl}
-                  onSelect={(url) => setAttributes({ imageUrl: url })}
-                  onClear={() => setAttributes({ imageUrl: '' })}
+                  onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
+                  onClear={() => setAttributes(clearImageAttributes())}
                 />
                 <TextControl
                   label="Title"
@@ -112,7 +114,7 @@ function registerEditorsPickItem() {
             {imageUrl ? (
               <MediaUploadCheck>
                 <MediaUpload
-                  onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+                  onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
                   allowedTypes={['image']}
                   render={({ open }) => (
                     <img
@@ -132,7 +134,7 @@ function registerEditorsPickItem() {
             ) : (
               <MediaUploadCheck>
                 <MediaUpload
-                  onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+                  onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
                   allowedTypes={['image']}
                   render={({ open }) => (
                     <button
@@ -254,10 +256,15 @@ function registerEditorsPickParent() {
                   >
                     <ImagePicker
                       imageUrl={imageUrl}
-                      onSelect={(url) =>
-                        updateBlockAttributes(block.clientId, { imageUrl: url })
+                      onSelect={(media) =>
+                        updateBlockAttributes(
+                          block.clientId,
+                          imageAttributesFromMedia(media),
+                        )
                       }
-                      onClear={() => updateBlockAttributes(block.clientId, { imageUrl: '' })}
+                      onClear={() =>
+                        updateBlockAttributes(block.clientId, clearImageAttributes())
+                      }
                     />
                     <TextControl
                       label="Title"

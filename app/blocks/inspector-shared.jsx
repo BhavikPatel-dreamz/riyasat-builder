@@ -297,6 +297,22 @@ export function useChildBlocks(clientId) {
   return { childBlocks, childCount, insertBlock, removeBlock, updateBlockAttributes };
 }
 
+export function imageAttributesFromMedia(media, urlKey = 'imageUrl') {
+  return {
+    [urlKey]: media?.url ?? '',
+    imageWidth: media?.width ?? 0,
+    imageHeight: media?.height ?? 0,
+  };
+}
+
+export function clearImageAttributes(urlKey = 'imageUrl') {
+  return {
+    [urlKey]: '',
+    imageWidth: 0,
+    imageHeight: 0,
+  };
+}
+
 export function ImagePicker({
   imageUrl,
   onSelect,
@@ -307,7 +323,7 @@ export function ImagePicker({
   return (
     <MediaUploadCheck>
       <MediaUpload
-        onSelect={(media) => onSelect(media?.url ?? '')}
+        onSelect={(media) => onSelect(media)}
         allowedTypes={['image']}
         render={({ open }) => (
           <div>

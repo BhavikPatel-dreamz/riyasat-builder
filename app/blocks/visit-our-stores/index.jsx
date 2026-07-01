@@ -20,7 +20,7 @@ import {
   Button,
 } from 'gutenberg-block-kit/wp/components';
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
-import { contentTabStyle, ImagePicker, useChildBlocks, useSliderPagination, SliderPaginationDots } from '../inspector-shared';
+import { contentTabStyle, ImagePicker, imageAttributesFromMedia, clearImageAttributes, useChildBlocks, useSliderPagination, SliderPaginationDots } from '../inspector-shared';
 import {
   VISIT_OUR_STORES_BLOCK,
   VISIT_OUR_STORES_ITEM_BLOCK,
@@ -62,6 +62,8 @@ function registerVisitOurStoresItem() {
     supports: { html: false, reusable: false },
     attributes: {
       imageUrl: { type: 'string', default: '' },
+      imageWidth: { type: 'number', default: 0 },
+      imageHeight: { type: 'number', default: 0 },
       storeName: { type: 'string', default: '' },
       address: { type: 'string', default: '' },
       mapLink: { type: 'string', default: '' },
@@ -80,8 +82,8 @@ function registerVisitOurStoresItem() {
               <PanelBody title="Store" initialOpen={true}>
                 <ImagePicker
                   imageUrl={imageUrl}
-                  onSelect={(url) => setAttributes({ imageUrl: url })}
-                  onClear={() => setAttributes({ imageUrl: '' })}
+                  onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
+                  onClear={() => setAttributes(clearImageAttributes())}
                 />
                 <TextControl
                   label="Store name"
@@ -109,7 +111,7 @@ function registerVisitOurStoresItem() {
             {imageUrl ? (
               <MediaUploadCheck>
                 <MediaUpload
-                  onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+                  onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
                   allowedTypes={['image']}
                   render={({ open }) => (
                     <img
@@ -129,7 +131,7 @@ function registerVisitOurStoresItem() {
             ) : (
               <MediaUploadCheck>
                 <MediaUpload
-                  onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+                  onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
                   allowedTypes={['image']}
                   render={({ open }) => (
                     <button
@@ -268,10 +270,15 @@ function registerVisitOurStoresParent() {
                   >
                     <ImagePicker
                       imageUrl={imageUrl}
-                      onSelect={(url) =>
-                        updateBlockAttributes(block.clientId, { imageUrl: url })
+                      onSelect={(media) =>
+                        updateBlockAttributes(
+                          block.clientId,
+                          imageAttributesFromMedia(media),
+                        )
                       }
-                      onClear={() => updateBlockAttributes(block.clientId, { imageUrl: '' })}
+                      onClear={() =>
+                        updateBlockAttributes(block.clientId, clearImageAttributes())
+                      }
                     />
                     <TextControl
                       label="Store name"

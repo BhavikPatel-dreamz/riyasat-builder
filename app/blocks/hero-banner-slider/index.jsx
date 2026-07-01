@@ -22,6 +22,8 @@ import { ActionBuilder } from 'gutenberg-block-kit/actions';
 import {
   contentTabStyle,
   ImagePicker,
+  imageAttributesFromMedia,
+  clearImageAttributes,
   useChildBlocks,
   useCarouselPagination,
   SliderPaginationDots,
@@ -86,8 +88,8 @@ function HeroBannerSlideFields({ attributes, onChange }) {
     <>
       <ImagePicker
         imageUrl={imageUrl}
-        onSelect={(url) => onChange({ imageUrl: url })}
-        onClear={() => onChange({ imageUrl: '' })}
+        onSelect={(media) => onChange(imageAttributesFromMedia(media))}
+        onClear={() => onChange(clearImageAttributes())}
       />
       <TextControl
         label="Main Title"
@@ -207,7 +209,7 @@ function HeroBannerSlidePreview({ attributes, setAttributes }) {
       {imageUrl ? (
         <MediaUploadCheck>
           <MediaUpload
-            onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+            onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
             allowedTypes={['image']}
             render={({ open }) => (
               <img
@@ -227,7 +229,7 @@ function HeroBannerSlidePreview({ attributes, setAttributes }) {
       ) : (
         <MediaUploadCheck>
           <MediaUpload
-            onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+            onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
             allowedTypes={['image']}
             render={({ open }) => (
               <button
@@ -297,6 +299,8 @@ function registerHeroBannerSliderItem() {
     supports: { html: false, reusable: false },
     attributes: {
       imageUrl: { type: 'string', default: '' },
+      imageWidth: { type: 'number', default: 0 },
+      imageHeight: { type: 'number', default: 0 },
       title: { type: 'string', default: '' },
       subTitle: { type: 'string', default: '' },
       description: { type: 'string', default: '' },

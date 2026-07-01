@@ -23,6 +23,8 @@ import { ActionBuilder } from 'gutenberg-block-kit/actions';
 import {
   contentTabStyle,
   ImagePicker,
+  imageAttributesFromMedia,
+  clearImageAttributes,
   useChildBlocks,
   useSliderPagination,
   SliderPaginationDots,
@@ -75,8 +77,8 @@ function ClientStoryFields({ attributes, onChange }) {
     <>
       <ImagePicker
         imageUrl={imageUrl}
-        onSelect={(url) => onChange({ imageUrl: url })}
-        onClear={() => onChange({ imageUrl: '' })}
+        onSelect={(media) => onChange(imageAttributesFromMedia(media))}
+        onClear={() => onChange(clearImageAttributes())}
       />
       <TextareaControl
         label="Review"
@@ -125,7 +127,7 @@ function ClientStoryCardPreview({ attributes, setAttributes }) {
         {imageUrl ? (
           <MediaUploadCheck>
             <MediaUpload
-              onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+              onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
               allowedTypes={['image']}
               render={({ open }) => (
                 <img
@@ -145,7 +147,7 @@ function ClientStoryCardPreview({ attributes, setAttributes }) {
         ) : (
           <MediaUploadCheck>
             <MediaUpload
-              onSelect={(media) => setAttributes({ imageUrl: media?.url ?? '' })}
+              onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
               allowedTypes={['image']}
               render={({ open }) => (
                 <button
@@ -217,6 +219,8 @@ function registerClientStoriesItem() {
       review: { type: 'string', default: '' },
       rating: { type: 'string', default: '5' },
       imageUrl: { type: 'string', default: '' },
+      imageWidth: { type: 'number', default: 0 },
+      imageHeight: { type: 'number', default: 0 },
       reviewerName: { type: 'string', default: '' },
       city: { type: 'string', default: '' },
       buttonText: { type: 'string', default: '' },
