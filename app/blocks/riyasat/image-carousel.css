@@ -15,7 +15,8 @@
   width: 100%;
 }
 
-.riyasat-image-carousel__slide img {
+.riyasat-image-carousel__slide img,
+.riyasat-image-carousel__slide video {
   display: block;
   width: 100%;
   height: 100%;

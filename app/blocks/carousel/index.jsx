@@ -17,9 +17,6 @@ import { PanelBody, ToggleControl, Button } from 'gutenberg-block-kit/wp/compone
 import { ActionBuilder } from 'gutenberg-block-kit/actions';
 import {
   contentTabStyle,
-  ImagePicker,
-  imageAttributesFromMedia,
-  clearImageAttributes,
   useChildBlocks,
   useCarouselPagination,
   SliderPaginationDots,
@@ -32,6 +29,45 @@ import {
 
 const DEFAULT_ACTIVE_DOT_COLOR = 'rgba(255, 255, 255, 1)';
 const DEFAULT_INACTIVE_DOT_COLOR = 'rgba(255, 255, 255, 0.7)';
+
+function mediaFromSelection(media) {
+  const url = media?.url || media?.source_url || media?.src || '';
+  const mime = media?.mime || media?.mime_type || media?.type || '';
+  return {
+    media: {
+      url,
+      type: mime || '',
+    },
+    imageUrl: url,
+    imageWidth: media?.width || 0,
+    imageHeight: media?.height || 0,
+  };
+}
+
+function clearMediaAttributes() {
+  return {
+    media: { url: '', type: '' },
+    imageUrl: '',
+    imageWidth: 0,
+    imageHeight: 0,
+  };
+}
+
+function resolveMediaType(media, imageUrl) {
+  const selected = media || {};
+  const mime =
+    selected?.type ||
+    selected?.mime ||
+    selected?.mime_type ||
+    (typeof selected?.url === 'string' && selected.url.includes('.') ? '' : '');
+
+  if (typeof mime === 'string' && mime.startsWith('video')) return 'video';
+
+  const url = selected?.url || imageUrl || '';
+  if (/\.(mp4|webm|mov|m4v|ogg)(\?|$)/i.test(url)) return 'video';
+
+  return 'image';
+}
 
 function getCarouselDotColors(activeDotColor, inactiveDotColor) {
   return {
@@ -62,7 +98,7 @@ function CarouselIcon() {
 }
 
 // ---------------------------------------------------------------------------
-// Child: core/image-carousel-item — one slide (image + tap action)
+// Child: core/image-carousel-item — one slide (image/video + tap action)
 // ---------------------------------------------------------------------------
 function registerCarouselItem() {
   registerBlockType(IMAGE_CAROUSEL_ITEM_BLOCK, {
@@ -74,6 +110,7 @@ function registerCarouselItem() {
     icon: 'format-image',
     supports: { html: false, reusable: false },
     attributes: {
+      media: { type: 'object', default: {} },
       imageUrl: { type: 'string', default: '' },
       imageWidth: { type: 'number', default: 0 },
       imageHeight: { type: 'number', default: 0 },
@@ -81,7 +118,10 @@ function registerCarouselItem() {
     },
 
     edit: ({ attributes, setAttributes }) => {
-      const { imageUrl, action: rawAction } = attributes;
+      const { media: rawMedia, imageUrl, action: rawAction } = attributes;
+      const media = rawMedia ?? {};
+      const mediaUrl = media?.url || imageUrl || '';
+      const mediaType = resolveMediaType(media, imageUrl);
       const action = rawAction ?? {};
       const blockProps = useBlockProps({
         className: 'riyasat-image-carousel-item-editor',
@@ -92,11 +132,28 @@ function registerCarouselItem() {
           <InspectorControls group="content">
             <div style={contentTabStyle}>
               <PanelBody title="Slide" initialOpen={true}>
-                <ImagePicker
-                  imageUrl={imageUrl}
-                  onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
-                  onClear={() => setAttributes(clearImageAttributes())}
-                />
+                <MediaUploadCheck>
+                  <MediaUpload
+                    onSelect={(selected) => setAttributes(mediaFromSelection(selected))}
+                    allowedTypes={['image', 'video']}
+                    render={({ open }) => (
+                      <div>
+                        <Button onClick={open} variant="secondary" style={{ width: '100%' }}>
+                          {mediaUrl ? 'Change media' : 'Add image or video'}
+                        </Button>
+                        {mediaUrl ? (
+                          <Button
+                            onClick={() => setAttributes(clearMediaAttributes())}
+                            variant="link"
+                            isDestructive
+                          >
+                            Remove media
+                          </Button>
+                        ) : null}
+                      </div>
+                    )}
+                  />
+                </MediaUploadCheck>
                 <ActionBuilder
                   label="Tap action"
                   value={action}
@@ -107,38 +164,49 @@ function registerCarouselItem() {
           </InspectorControls>
 
           <div {...blockProps}>
-            {imageUrl ? (
+            {mediaUrl ? (
               <MediaUploadCheck>
                 <MediaUpload
-                  onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
-                  allowedTypes={['image']}
+                  onSelect={(selected) => setAttributes(mediaFromSelection(selected))}
+                  allowedTypes={['image', 'video']}
                   render={({ open }) => (
-                    <img
-                      src={imageUrl}
-                      alt=""
-                      className="riyasat-image-carousel-item-editor__image"
-                      onClick={open}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') open();
-                      }}
-                      role="button"
-                      tabIndex={0}
-                    />
+                    <>
+                      {mediaType === 'video' ? (
+                        <video
+                          src={mediaUrl}
+                          className="riyasat-image-carousel-item-editor__image"
+                          controls
+                          onClick={open}
+                        />
+                      ) : (
+                        <img
+                          src={mediaUrl}
+                          alt=""
+                          className="riyasat-image-carousel-item-editor__image"
+                          onClick={open}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') open();
+                          }}
+                          role="button"
+                          tabIndex={0}
+                        />
+                      )}
+                    </>
                   )}
                 />
               </MediaUploadCheck>
             ) : (
               <MediaUploadCheck>
                 <MediaUpload
-                  onSelect={(media) => setAttributes(imageAttributesFromMedia(media))}
-                  allowedTypes={['image']}
+                  onSelect={(selected) => setAttributes(mediaFromSelection(selected))}
+                  allowedTypes={['image', 'video']}
                   render={({ open }) => (
                     <button
                       type="button"
                       className="riyasat-image-carousel-item-editor__placeholder"
                       onClick={open}
                     >
-                      Click to add slide image
+                      Click to add slide image or video
                     </button>
                   )}
                 />
@@ -150,15 +218,26 @@ function registerCarouselItem() {
     },
 
     save: ({ attributes }) => {
-      const { imageUrl, action } = attributes;
+      const { media: rawMedia, imageUrl, action } = attributes;
+      const media = rawMedia ?? {};
+      const mediaUrl = media?.url || imageUrl || '';
+      const mediaType = resolveMediaType(media, imageUrl);
       const blockProps = useBlockProps.save({
         className: 'riyasat-image-carousel__slide',
         'data-action': JSON.stringify(action ?? {}),
+        'data-media': JSON.stringify({
+          url: mediaUrl,
+          type: media?.type || (mediaType === 'video' ? 'video/mp4' : 'image/jpeg'),
+        }),
       });
-      if (!imageUrl) return <div {...blockProps} />;
+      if (!mediaUrl) return <div {...blockProps} />;
       return (
         <div {...blockProps}>
-          <img src={imageUrl} alt="" />
+          {mediaType === 'video' ? (
+            <video src={mediaUrl} controls />
+          ) : (
+            <img src={mediaUrl} alt="" />
+          )}
         </div>
       );
     },
@@ -201,7 +280,9 @@ function registerCarouselParent() {
           <InspectorControls group="content">
             <div style={{ padding: '0 16px 16px' }}>
               {childBlocks.map((block, index) => {
-                const { imageUrl, action } = block.attributes;
+                const { media, imageUrl, action } = block.attributes;
+                const mediaUrl = media?.url || imageUrl || '';
+                const mediaType = resolveMediaType(media ?? {}, imageUrl);
                 return (
                   <PanelBody
                     key={block.clientId}
@@ -210,16 +291,16 @@ function registerCarouselParent() {
                   >
                     <MediaUploadCheck>
                       <MediaUpload
-                        onSelect={(media) =>
+                        onSelect={(selected) =>
                           updateBlockAttributes(
                             block.clientId,
-                            imageAttributesFromMedia(media),
+                            mediaFromSelection(selected),
                           )
                         }
-                        allowedTypes={['image']}
+                        allowedTypes={['image', 'video']}
                         render={({ open }) => (
                           <div>
-                            {imageUrl ? (
+                            {mediaUrl ? (
                               <div
                                 onClick={open}
                                 style={{
@@ -230,34 +311,46 @@ function registerCarouselParent() {
                                   border: '1px solid #ddd',
                                 }}
                               >
-                                <img
-                                  src={imageUrl}
-                                  alt=""
-                                  style={{
-                                    width: '100%',
-                                    height: '80px',
-                                    objectFit: 'cover',
-                                    display: 'block',
-                                  }}
-                                />
+                                {mediaType === 'video' ? (
+                                  <video
+                                    src={mediaUrl}
+                                    style={{
+                                      width: '100%',
+                                      height: '80px',
+                                      objectFit: 'cover',
+                                      display: 'block',
+                                    }}
+                                  />
+                                ) : (
+                                  <img
+                                    src={mediaUrl}
+                                    alt=""
+                                    style={{
+                                      width: '100%',
+                                      height: '80px',
+                                      objectFit: 'cover',
+                                      display: 'block',
+                                    }}
+                                  />
+                                )}
                               </div>
                             ) : null}
                             <Button onClick={open} variant="secondary" style={{ width: '100%' }}>
-                              {imageUrl ? 'Change image' : 'Add image'}
+                              {mediaUrl ? 'Change media' : 'Add image or video'}
                             </Button>
-                            {imageUrl ? (
+                            {mediaUrl ? (
                               <Button
                                 onClick={() =>
                                   updateBlockAttributes(
                                     block.clientId,
-                                    clearImageAttributes(),
+                                    clearMediaAttributes(),
                                   )
                                 }
                                 variant="link"
                                 isDestructive
                                 style={{ marginTop: '4px' }}
                               >
-                                Remove image
+                                Remove media
                               </Button>
                             ) : null}
                           </div>
