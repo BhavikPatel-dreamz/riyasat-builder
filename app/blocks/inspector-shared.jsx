@@ -313,6 +313,115 @@ export function clearImageAttributes(urlKey = 'imageUrl') {
   };
 }
 
+export function resolveMediaType(media, fallbackUrl = '') {
+  const selected = media || {};
+  const mime =
+    selected?.type ||
+    selected?.mime ||
+    selected?.mime_type ||
+    '';
+
+  if (typeof mime === 'string' && mime.startsWith('video')) return 'video';
+
+  const url = selected?.url || fallbackUrl || '';
+  if (/\.(mp4|webm|mov|m4v|ogg)(\?|$)/i.test(url)) return 'video';
+
+  return 'image';
+}
+
+export function mediaAttributesFromMedia(media) {
+  const url = media?.url || media?.source_url || media?.src || '';
+  const mime = media?.mime || media?.mime_type || media?.type || '';
+
+  return {
+    media: {
+      url,
+      type: mime || '',
+    },
+    imageUrl: url,
+    imageWidth: media?.width || 0,
+    imageHeight: media?.height || 0,
+  };
+}
+
+export function clearMediaAttributes() {
+  return {
+    media: { url: '', type: '' },
+    imageUrl: '',
+    imageWidth: 0,
+    imageHeight: 0,
+  };
+}
+
+export function MediaVideoPicker({
+  media,
+  fallbackUrl = '',
+  onSelect,
+  onClear,
+  addLabel = 'Add image or video',
+  changeLabel = 'Change media',
+  removeLabel = 'Remove media',
+}) {
+  const mediaUrl = media?.url || fallbackUrl || '';
+  const mediaType = resolveMediaType(media, fallbackUrl);
+
+  return (
+    <MediaUploadCheck>
+      <MediaUpload
+        onSelect={(selected) => onSelect(selected)}
+        allowedTypes={['image', 'video']}
+        render={({ open }) => (
+          <div>
+            {mediaUrl ? (
+              <div
+                onClick={open}
+                style={{
+                  marginBottom: '8px',
+                  borderRadius: '6px',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  border: '1px solid #ddd',
+                }}
+              >
+                {mediaType === 'video' ? (
+                  <video
+                    src={mediaUrl}
+                    style={{
+                      width: '100%',
+                      height: '80px',
+                      objectFit: 'cover',
+                      display: 'block',
+                    }}
+                  />
+                ) : (
+                  <img
+                    src={mediaUrl}
+                    alt=""
+                    style={{
+                      width: '100%',
+                      height: '80px',
+                      objectFit: 'cover',
+                      display: 'block',
+                    }}
+                  />
+                )}
+              </div>
+            ) : null}
+            <Button onClick={open} variant="secondary" style={{ width: '100%' }}>
+              {mediaUrl ? changeLabel : addLabel}
+            </Button>
+            {mediaUrl && onClear ? (
+              <Button onClick={onClear} variant="link" isDestructive style={{ marginTop: '4px' }}>
+                {removeLabel}
+              </Button>
+            ) : null}
+          </div>
+        )}
+      />
+    </MediaUploadCheck>
+  );
+}
+
 export function ImagePicker({
   imageUrl,
   onSelect,

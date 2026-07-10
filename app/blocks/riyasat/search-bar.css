@@ -1,0 +1,51 @@
+.riyasat-search-bar-editor,
+.riyasat-search-bar {
+  width: 100%;
+}
+
+.riyasat-search-bar__shell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 14px;
+  border-radius: 999px;
+  box-sizing: border-box;
+}
+
+.riyasat-search-bar__icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.riyasat-search-bar__icon-placeholder {
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: #9ca3af;
+}
+
+.riyasat-search-bar__input {
+  flex: 1;
+  min-width: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  box-sizing: border-box;
+}
+
+.riyasat-search-bar__placeholder-text {
+  display: block;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.riyasat-search-bar__placeholder {
+  display: none;
+}

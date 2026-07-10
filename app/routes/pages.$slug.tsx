@@ -1,4 +1,5 @@
 import type { LinksFunction, LoaderFunctionArgs } from "react-router";
+import { useEffect } from "react";
 import { useLoaderData } from "react-router";
 import { BlockRenderer } from "gutenberg-block-kit/renderer";
 
@@ -20,6 +21,7 @@ import riyasatHeroBannerSliderStyles from "../blocks/riyasat/hero-banner-slider.
 import riyasatOccasionCardsGridStyles from "../blocks/riyasat/occasion-cards-grid.css?url";
 import riyasatReadyToShipBannerStyles from "../blocks/riyasat/ready-to-ship-banner.css?url";
 import riyasatSelectedProductsStyles from "../blocks/riyasat/selected-products.css?url";
+import riyasatSearchBarStyles from "../blocks/riyasat/search-bar.css?url";
 
 import { getPageBySlug } from "../lib/cms.server";
 
@@ -42,6 +44,7 @@ export const links: LinksFunction = () => [
   { rel: "stylesheet", href: riyasatOccasionCardsGridStyles },
   { rel: "stylesheet", href: riyasatReadyToShipBannerStyles },
   { rel: "stylesheet", href: riyasatSelectedProductsStyles },
+  { rel: "stylesheet", href: riyasatSearchBarStyles },
 ];
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
@@ -89,6 +92,21 @@ async function getPublishedPageBySlug(slug: string) {
 
 export default function PublicCmsPage() {
   const { page } = useLoaderData<typeof loader>();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    import("../blocks/riyasat/search-bar.client").then(({ initSearchBars }) => {
+      if (!cancelled) initSearchBars();
+    });
+
+    return () => {
+      cancelled = true;
+      document
+        .querySelectorAll<HTMLElement>(".riyasat-search-bar[data-search-bar-init]")
+        .forEach((bar) => bar.dispatchEvent(new CustomEvent("riyasat:search-bar-destroy")));
+    };
+  }, [page.html]);
 
   return (
     <main className="cms-public-page">
