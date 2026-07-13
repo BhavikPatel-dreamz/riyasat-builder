@@ -64,9 +64,13 @@ export default defineConfig({
   optimizeDeps: {
     include: [
       "@shopify/app-bridge-react",
+      "react-icons/fa",
     ],
     exclude: [
       "gutenberg-block-kit/editor",
     ],
+  },
+  ssr: {
+    noExternal: ["react-icons"],
   },
 }) satisfies UserConfig;
