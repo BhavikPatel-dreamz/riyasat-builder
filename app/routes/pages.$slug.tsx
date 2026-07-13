@@ -22,6 +22,7 @@ import riyasatOccasionCardsGridStyles from "../blocks/riyasat/occasion-cards-gri
 import riyasatReadyToShipBannerStyles from "../blocks/riyasat/ready-to-ship-banner.css?url";
 import riyasatSelectedProductsStyles from "../blocks/riyasat/selected-products.css?url";
 import riyasatSearchBarStyles from "../blocks/riyasat/search-bar.css?url";
+import riyasatMenuItemsStyles from "../blocks/riyasat/menu-items.css?url";
 
 import { getPageBySlug } from "../lib/cms.server";
 
@@ -45,6 +46,7 @@ export const links: LinksFunction = () => [
   { rel: "stylesheet", href: riyasatReadyToShipBannerStyles },
   { rel: "stylesheet", href: riyasatSelectedProductsStyles },
   { rel: "stylesheet", href: riyasatSearchBarStyles },
+  { rel: "stylesheet", href: riyasatMenuItemsStyles },
 ];
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {

@@ -17,6 +17,7 @@ import "../../blocks/riyasat/hero-banner-slider.css";
 import "../../blocks/riyasat/occasion-cards-grid.css";
 import "../../blocks/riyasat/ready-to-ship-banner.css";
 import "../../blocks/riyasat/selected-products.css";
+import "../../blocks/riyasat/menu-items.css";
 import { BlockEditor } from "gutenberg-block-kit/editor";
 import { withInferredMimeType } from "../../lib/media-mime";
 

@@ -13,6 +13,8 @@ import {
 } from "../lib/force-update.server";
 import { authenticate } from "../shopify.server";
 
+const FORM_ID = "force-update-settings";
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const config = await getForceUpdateConfig(session.shop);
@@ -34,8 +36,19 @@ export default function AppSettingsPage() {
 
   return (
     <s-page heading="Settings">
+      <s-button
+        slot="primary-action"
+        variant="primary"
+        onClick={() => {
+          const form = document.getElementById(FORM_ID) as HTMLFormElement | null;
+          form?.requestSubmit();
+        }}
+      >
+        Save settings
+      </s-button>
+
       <s-section>
-        <form method="post">
+        <form id={FORM_ID} method="post">
           <s-stack direction="block" gap="large">
             {actionData?.ok ? (
               <s-banner tone="success" heading="Settings saved">
@@ -100,10 +113,6 @@ export default function AppSettingsPage() {
                 ></s-checkbox>
               </s-stack>
             </s-card>
-
-            <s-button slot="primary-action" type="submit" variant="primary">
-              Save settings
-            </s-button>
           </s-stack>
         </form>
       </s-section>
@@ -114,4 +123,3 @@ export default function AppSettingsPage() {
 export const headers: HeadersFunction = (headersArgs) => {
   return boundary.headers(headersArgs);
 };
-

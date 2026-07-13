@@ -52,6 +52,10 @@ export const STANDARD_SPACER_BLOCK = "standard/spacer";
 export const STANDARD_SELECTED_PRODUCTS_BLOCK = "standard/selected-products";
 export const STANDARD_SEARCH_BAR_BLOCK = "standard/search-bar";
 
+export const MENU_ITEMS_BLOCK = "core/menu-items";
+export const MENU_ITEM_BLOCK = "core/menu-item";
+export const MENU_SUB_ITEM_BLOCK = "core/menu-sub-item";
+
 /**
  * Blocks kept registered + insertable. Everything else (all WP core blocks) is
  * unregistered in index.ts; the kit's myapp/* demos are dropped via
@@ -93,4 +97,7 @@ export const RIYASAT_BLOCKS = [
   STANDARD_SPACER_BLOCK,
   STANDARD_SELECTED_PRODUCTS_BLOCK,
   STANDARD_SEARCH_BAR_BLOCK,
+  MENU_ITEMS_BLOCK,
+  MENU_ITEM_BLOCK,
+  MENU_SUB_ITEM_BLOCK,
 ];
