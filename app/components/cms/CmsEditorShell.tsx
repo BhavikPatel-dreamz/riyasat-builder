@@ -138,6 +138,23 @@ export function CmsEditorShell({
     import("../../blocks");
   }, []);
 
+  // Merchant-authored (DB) blocks: fetch the enabled registry and register them
+  // dynamically via the kit's schema-driven factory. Additive to the static
+  // riyasat blocks imported above — no rebuild needed when a block is created.
+  const [dynamicBlocks, setDynamicBlocks] = useState<any[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/cms/blocks?registry=1")
+      .then((r) => (r.ok ? r.json() : { registry: [] }))
+      .then((data) => {
+        if (!cancelled) setDynamicBlocks(Array.isArray(data.registry) ? data.registry : []);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   useEffect(() => {
     function keepWidgetListOpen() {
       const inserterToggle = document.querySelector(
@@ -857,8 +874,15 @@ export function CmsEditorShell({
         unregisterBlocks={["core/breadcrumbs","core/table","core/code","core/gallery","core/shortcode","core/search","core/tag-cloud","core/html"]}
         // Drop the kit's myapp/* demo blocks entirely.
         disableBundledBlocks
-        // Hide remaining defaults (WP core) — only riyasat blocks insertable.
-        editorSettings={{ allowedBlockTypes: RIYASAT_BLOCKS }}
+        // Merchant-authored JSON blocks registered dynamically.
+        blockRegistry={dynamicBlocks}
+        // Hide remaining defaults (WP core) — only riyasat + dynamic blocks insertable.
+        editorSettings={{
+          allowedBlockTypes: [
+            ...RIYASAT_BLOCKS,
+            ...dynamicBlocks.map((b: { name: string }) => b.name),
+          ],
+        }}
         media={{
           perPage: 20,
           listImages,

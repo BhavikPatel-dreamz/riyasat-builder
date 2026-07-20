@@ -86,3 +86,94 @@ model Media {
 
   @@index([shop])
 }
+
+// Per-shop mobile app force-update settings (Settings page + app proxy).
+model ForceUpdateConfig {
+  shop                     String   @id
+  androidAppVersion        String   @default("") @map("android_app_version")
+  androidStoreUrl          String   @default("") @map("android_store_url")
+  androidEnableForceUpdate Boolean  @default(false) @map("android_enable_force_update")
+  iosAppVersion            String   @default("") @map("ios_app_version")
+  iosStoreUrl              String   @default("") @map("ios_store_url")
+  iosEnableForceUpdate     Boolean  @default(false) @map("ios_enable_force_update")
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @updatedAt @map("updated_at")
+
+  @@map("force_update_config")
+}
+
+model ShopSettings {
+  id                        String   @id @default(cuid())
+  shop                      String   @unique
+  androidAppVersion         String   @default("")
+  androidPlayStoreUrl       String   @default("")
+  androidForceUpdateEnabled Boolean  @default(false)
+  iosAppVersion             String   @default("")
+  iosAppStoreUrl            String   @default("")
+  iosForceUpdateEnabled     Boolean  @default(false)
+  backgroundMusicFileUrl    String   @default("")
+  backgroundMusicUrl        String   @default("")
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+}
+
+
+// Merchant-authored Gutenberg block, stored as pure JSON and registered
+// dynamically in the editor via gutenberg-block-kit's blockRegistry. No JS
+// code is stored — `schema` holds the attribute + field-control spec that the
+// package's schema-driven factory turns into edit/save at runtime.
+model BlockDefinition {
+  id           String   @id @default(cuid())
+  shop         String
+  name         String   // "cms/hero-banner" — namespace/slug (unique per shop)
+  title        String
+  description  String?  @db.Text
+  categorySlug String   @default("custom")
+  icon         String   @default("smiley")
+  previewImage String?  // Media.url — shown in the inserter
+  keywords     String   @default("[]") @db.Text // JSON string[]
+  supports     String   @default("{}")  @db.Text // JSON: { align, html, reusable }
+  // Authoring payload consumed by buildBlockSettings():
+  //   { attributes: {...}, fields: [ { key, control, label, panel, default, ... } ] }
+  schema       String   @db.Text
+  // "draft" | "enabled" | "disabled" — only "enabled" reach the editor registry.
+  status       String   @default("draft")
+  version      Int      @default(1)
+  createdBy    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  versions BlockVersion[]
+
+  @@unique([shop, name])
+  @@index([shop, status])
+  @@index([shop, categorySlug])
+}
+
+// Merchant-created inserter category (Layout, Marketing, Products, …).
+model BlockCategory {
+  id        String   @id @default(cuid())
+  shop      String
+  slug      String   // "marketing"
+  title     String   // "Marketing"
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([shop, slug])
+  @@index([shop])
+}
+
+// Immutable snapshot written on every BlockDefinition update.
+model BlockVersion {
+  id        String   @id @default(cuid())
+  blockId   String
+  version   Int
+  snapshot  String   @db.Text // full BlockDefinition JSON at save time
+  createdBy String?
+  createdAt DateTime @default(now())
+
+  block BlockDefinition @relation(fields: [blockId], references: [id], onDelete: Cascade)
+
+  @@unique([blockId, version])
+  @@index([blockId])
+}

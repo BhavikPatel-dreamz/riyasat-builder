@@ -1,3 +1,5 @@
+import type { ForceUpdateConfig as ForceUpdateConfigRow } from "@prisma/client";
+
 import db from "../db.server";
 
 export type PlatformConfig = {
@@ -24,16 +26,6 @@ const DEFAULT_CONFIG: ForceUpdateConfig = {
   },
 };
 
-type Row = {
-  shop: string;
-  android_app_version: string | null;
-  android_store_url: string | null;
-  android_enable_force_update: boolean | null;
-  ios_app_version: string | null;
-  ios_store_url: string | null;
-  ios_enable_force_update: boolean | null;
-};
-
 function parseBoolean(value: unknown) {
   return value === true || value === "true" || value === "on" || value === "1";
 }
@@ -57,80 +49,54 @@ function compareVersions(installed: string, required: string) {
   return 0;
 }
 
-function rowToConfig(row: Row | null | undefined): ForceUpdateConfig {
+function rowToConfig(row: ForceUpdateConfigRow | null | undefined): ForceUpdateConfig {
   if (!row) return DEFAULT_CONFIG;
 
   return {
     android: {
-      appVersion: row.android_app_version || "",
-      storeUrl: row.android_store_url || "",
-      enableForceUpdate: Boolean(row.android_enable_force_update),
+      appVersion: row.androidAppVersion,
+      storeUrl: row.androidStoreUrl,
+      enableForceUpdate: row.androidEnableForceUpdate,
     },
     ios: {
-      appVersion: row.ios_app_version || "",
-      storeUrl: row.ios_store_url || "",
-      enableForceUpdate: Boolean(row.ios_enable_force_update),
+      appVersion: row.iosAppVersion,
+      storeUrl: row.iosStoreUrl,
+      enableForceUpdate: row.iosEnableForceUpdate,
     },
   };
 }
 
 export async function getForceUpdateConfig(shop: string): Promise<ForceUpdateConfig> {
-  const rows = await db.$queryRaw<Row[]>`
-    SELECT
-      shop,
-      android_app_version,
-      android_store_url,
-      android_enable_force_update,
-      ios_app_version,
-      ios_store_url,
-      ios_enable_force_update
-    FROM force_update_config
-    WHERE shop = ${shop}
-    LIMIT 1
-  `;
-
-  return rowToConfig(rows[0]);
+  const row = await db.forceUpdateConfig.findUnique({ where: { shop } });
+  return rowToConfig(row);
 }
 
 export async function upsertForceUpdateConfig(
   shop: string,
   input: ForceUpdateConfig,
 ): Promise<ForceUpdateConfig> {
-  await db.$executeRaw`
-    INSERT INTO force_update_config (
+  const row = await db.forceUpdateConfig.upsert({
+    where: { shop },
+    create: {
       shop,
-      android_app_version,
-      android_store_url,
-      android_enable_force_update,
-      ios_app_version,
-      ios_store_url,
-      ios_enable_force_update,
-      created_at,
-      updated_at
-    )
-    VALUES (
-      ${shop},
-      ${input.android.appVersion},
-      ${input.android.storeUrl},
-      ${input.android.enableForceUpdate},
-      ${input.ios.appVersion},
-      ${input.ios.storeUrl},
-      ${input.ios.enableForceUpdate},
-      NOW(),
-      NOW()
-    )
-    ON CONFLICT (shop)
-    DO UPDATE SET
-      android_app_version = EXCLUDED.android_app_version,
-      android_store_url = EXCLUDED.android_store_url,
-      android_enable_force_update = EXCLUDED.android_enable_force_update,
-      ios_app_version = EXCLUDED.ios_app_version,
-      ios_store_url = EXCLUDED.ios_store_url,
-      ios_enable_force_update = EXCLUDED.ios_enable_force_update,
-      updated_at = NOW()
-  `;
+      androidAppVersion: input.android.appVersion,
+      androidStoreUrl: input.android.storeUrl,
+      androidEnableForceUpdate: input.android.enableForceUpdate,
+      iosAppVersion: input.ios.appVersion,
+      iosStoreUrl: input.ios.storeUrl,
+      iosEnableForceUpdate: input.ios.enableForceUpdate,
+    },
+    update: {
+      androidAppVersion: input.android.appVersion,
+      androidStoreUrl: input.android.storeUrl,
+      androidEnableForceUpdate: input.android.enableForceUpdate,
+      iosAppVersion: input.ios.appVersion,
+      iosStoreUrl: input.ios.storeUrl,
+      iosEnableForceUpdate: input.ios.enableForceUpdate,
+    },
+  });
 
-  return getForceUpdateConfig(shop);
+  return rowToConfig(row);
 }
 
 export function parseForceUpdateForm(formData: FormData): ForceUpdateConfig {
@@ -171,4 +137,3 @@ export function resolveForceUpdateDecision(
     updateUrl: target.storeUrl,
   };
 }
-

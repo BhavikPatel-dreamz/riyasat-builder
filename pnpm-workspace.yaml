@@ -8,6 +8,4 @@ allowBuilds:
   prisma: true
   unrs-resolver: true
 minimumReleaseAgeExclude:
-  - gutenberg-block-kit@1.1.4
-  - gutenberg-block-kit@1.1.5
-  - gutenberg-block-kit@1.1.6
+  - gutenberg-block-kit@1.1.4 || 1.1.5 || 1.1.6 || 1.2.0

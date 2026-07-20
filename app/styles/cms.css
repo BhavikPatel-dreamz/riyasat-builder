@@ -388,11 +388,25 @@
  * so nothing outside the editor is affected.
  * ------------------------------------------------------------------------- */
 
-/* Grey backdrop around the phone, and center the frame horizontally. */
-body {
-    height: 100vh;
-    overflow: hidden;
+/* Grey backdrop around the phone, and center the frame horizontally.
+   Only lock body scroll on the CMS editor route — other admin pages must scroll. */
+body:has(.cms-editor-shell) {
+  height: 100vh;
+  overflow: hidden;
 }
+
+body:has(.bf-page) {
+  height: auto;
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+html:has(.bf-page) {
+  overflow-y: auto;
+}
+
 .cms-editor-shell .builder-wrapper .editor-canvas-wrapper {
   background: #e9ebf0;
   align-items: center;

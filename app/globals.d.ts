@@ -26,9 +26,31 @@ declare module "gutenberg-block-kit/editor" {
   export function registerBlocks(
     registrar: (wp: Record<string, any>) => void,
   ): void;
+  // Register/merge JSON block definitions (schema-driven factory). Async.
+  export function initBlocks(
+    blocks?: any[],
+    options?: {
+      customBlocksConfig?: any[];
+      disableBundledBlocks?: boolean;
+      unregisterBlocks?: string[];
+    },
+  ): Promise<void>;
+  // Unregister + re-register a JSON block after its definition changed
+  // (used by the Block Library live preview).
+  export function reRegisterJSONBlock(blockDef: Record<string, any>): void;
+  // Turn a JSON block definition into Gutenberg block settings.
+  export function buildBlockSettings(blockDef: Record<string, any>): Record<string, any>;
   export function unregisterBlockType(name: string): unknown;
   export function getWpRuntime(): Record<string, any>;
   export function exposeWpOnWindow(): void;
+  export function useEditor(): Record<string, any>;
+  export const EditorProvider: ComponentType<Record<string, unknown>>;
+  export const EDITOR_SETTINGS: Record<string, any>;
+  export function mergeEditorSettings(
+    defaults: Record<string, any>,
+    overrides?: Record<string, any>,
+  ): Record<string, any>;
+  export function resolveBlockIcon(icon: unknown): unknown;
 }
 
 // Shared @wordpress runtime exposed by the kit (same singleton the editor uses,
